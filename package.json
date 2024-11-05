@@ -1,0 +1,25 @@
+{
+  "name": "openote-front",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@mdi/font": "^7.4.47",
+    "@nuxt/eslint": "^0.5.7",
+    "nuxt": "^3.14.0",
+    "typescript": "^5.6.3",
+    "vue": "latest",
+    "vue-router": "latest",
+    "vue-tsc": "^2.1.10"
+  },
+  "devDependencies": {
+    "vite-plugin-vuetify": "^2.0.4",
+    "vuetify": "^3.7.3"
+  }
+}

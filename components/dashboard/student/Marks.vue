@@ -1,24 +1,30 @@
 <template>
-  <v-card title="My recent marks">
+  <v-card
+    title="My recent marks"
+    :disabled="componentLoading"
+    :loading="componentLoading"
+  >
     <template v-slot:append>
       <v-btn to="/calendar" icon="mdi-open-in-new" variant="text"> </v-btn>
     </template>
-    <v-card-text>
+    <v-card-text v-if="!componentLoading">
       <v-list v-if="marks.length > 0">
         <div v-for="(mark, index) in marks" :key="index">
           <v-list-item>
             <template v-slot:prepend>
               <p
                 class="text-h6 font-weight-black pr-4"
-                :class="mark.mark / mark.max_mark < 0.4 ? 'text-red' : ''"
+                :class="mark.value / mark.max_mark < 0.4 ? 'text-red' : ''"
                 style="min-width: 90px; text-align: center"
               >
-                {{ mark.mark }}/{{ mark.max_mark }}
+                {{ mark.value }}/{{ mark.max_mark }}
               </p>
             </template>
             <v-list-item-title
-              >{{ mark.description }}
-              <span>({{ mark.subject }})</span></v-list-item-title
+              >{{ mark.title }}
+              <span class="text-body-2"
+                >({{ mark.unit }})</span
+              ></v-list-item-title
             >
             <v-list-item-subtitle
               >Added the
@@ -32,53 +38,61 @@
       </v-list>
       <p v-else class="text-center text-grey">There is no marks to display</p>
     </v-card-text>
+    <v-card-text v-else>
+      <v-skeleton-loader
+        :loading="componentLoading"
+        type="table-heading"
+      ></v-skeleton-loader>
+      <v-divider />
+      <v-skeleton-loader
+        :loading="componentLoading"
+        type="table-heading"
+      ></v-skeleton-loader>
+      <v-divider />
+      <v-skeleton-loader
+        :loading="componentLoading"
+        type="table-heading"
+        class="mb-4"
+      ></v-skeleton-loader>
+    </v-card-text>
   </v-card>
 </template>
 
 <script setup lang="ts">
 type mark = {
-  mark: number;
+  value: number;
   max_mark: number;
   coefficient: number;
-  subject: string;
-  description: string;
+  unit: string;
+  title: string;
   date: Date;
 };
 
-const marks = ref<mark[]>([
-  {
-    mark: 10,
-    max_mark: 20,
-    coefficient: 2.0,
-    subject: "System",
-    description: "QCM Linux",
-    date: new Date("2021-12-13"),
-  },
-  {
-    mark: 10,
-    max_mark: 200,
-    coefficient: 2.0,
-    subject: "System",
-    description: "QCM Linux",
-    date: new Date("2021-12-13"),
-  },
-  {
-    mark: 6,
-    max_mark: 20,
-    coefficient: 2.0,
-    subject: "History",
-    description: "TP WWII",
-    date: new Date("2021-02-13"),
-  },
-  {
-    mark: 10,
-    max_mark: 20,
-    coefficient: 2.0,
-    subject: "System",
-    description: "QCM Linux",
-    date: new Date("2021-12-13"),
-  },
-]);
+const componentLoading = ref(true);
+const marks = ref<mark[]>([]);
 
-const loadMarks = async () => {};
+const loadMarks = async () => {
+  const session = useCookie<SessionContent>("session");
+  if (!session.value) logout();
+  await $fetch(`${apiUrl}/marks`, {
+    headers: {
+      Authorization: session.value.session_token,
+    },
+    params: {
+      max_mark: 3,
+    },
+  })
+    .then((data) => {
+      marks.value = data as mark[];
+      componentLoading.value = false;
+    })
+    .catch((err) => {
+      console.error(err);
+      componentLoading.value = false;
+    });
+};
+
+onMounted(() => {
+  loadMarks();
+});
 </script>

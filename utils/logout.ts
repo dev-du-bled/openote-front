@@ -24,7 +24,7 @@ const logout = async (expired: boolean = true) => {
   const token = session.value?.session_token;
 
   if (token) {
-    await fetch(`${apiUrl}/auth/logout`, {
+    await $fetch(`${apiUrl}/auth/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

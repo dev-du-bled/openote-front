@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <ClientOnly>
     <v-app-bar scroll-behavior="elevate" class="px-4">
       <v-img
         v-if="!mobile || userStatus == 'none'"
@@ -90,7 +90,16 @@
         </template>
       </v-list>
     </v-navigation-drawer>
-  </div>
+    <template #fallback>
+      <!-- This fallback is the content displayed while the real header is not rendered. The header is rendered on client only due to ssr issues -->
+      <v-app-bar scroll-behavior="elevate" app class="px-4">
+        <v-img src="/openote.svg" max-width="32px" class="ml-4 mb-1" />
+        <v-app-bar-title class="font-weight-bold move-left"
+          >OpeNote</v-app-bar-title
+        >
+      </v-app-bar>
+    </template>
+  </ClientOnly>
 </template>
 
 <style scoped>
@@ -101,7 +110,6 @@
 
 <script setup lang="ts">
 const drawer = ref(false);
-import { ClientOnly } from "#build/components";
 import { userStatus, type UserStatus } from "@/composables/currentUser";
 import { logout } from "@/utils/logout";
 import { useDisplay } from "vuetify/lib/framework.mjs";
@@ -113,7 +121,7 @@ type headerItem = {
   to?: string;
   icon?: string;
   items?: { title: string; to: string }[];
-  role?: UserStatus[]; // The role needed to see the item
+  role?: UserStatus[]; // The role(s) needed to see the item
 };
 
 const headerItems: headerItem[] = [
@@ -125,7 +133,12 @@ const headerItems: headerItem[] = [
     icon: "mdi-book-open",
     role: ["student"],
   },
-  { title: "Marks", to: "/marks", icon: "mdi-chart-bar", role: ["student"] },
+  {
+    title: "Marks",
+    to: "/student/marks",
+    icon: "mdi-chart-bar",
+    role: ["student"],
+  },
   {
     title: "Nav2",
     items: [

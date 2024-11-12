@@ -8,8 +8,6 @@ export default defineNuxtRouteMiddleware((to, from) => {
   const config = useRuntimeConfig();
   const publicRoutes = ["/login", "/register"];
 
-  console.log(config);
-
   if (publicRoutes.includes(to.path)) {
     return;
   }

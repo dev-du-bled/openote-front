@@ -1,34 +1,32 @@
 <template>
-  <v-container>
-    <v-row>
-      <v-col :cols="mobile ? 12 : 5">
-        <dashboard-day-calendar />
-      </v-col>
-      <v-col :cols="mobile ? 12 : 7">
-        <v-row>
-          <v-col>
-            <dashboard-student-homework />
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col>
-            <dashboard-student-marks />
-          </v-col>
-        </v-row>
-      </v-col>
-    </v-row>
-  </v-container>
+  <ClientOnly>
+    <v-container v-if="userStatus == 'student'">
+      <v-row>
+        <v-col :cols="mobile ? 12 : 5">
+          <dashboard-day-calendar />
+        </v-col>
+        <v-col :cols="mobile ? 12 : 7">
+          <v-row>
+            <v-col>
+              <dashboard-student-homework />
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col>
+              <dashboard-student-marks />
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
+    </v-container>
+  </ClientOnly>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from "vue";
-import { useDate, useDisplay } from "vuetify";
+import { useDisplay } from "vuetify";
+import { userStatus } from "@/composables/useCurrentUser";
 
 const { mobile } = useDisplay();
-
-const homeworkDone = ref(false);
-const homeworkDone2 = ref(false);
-const homeworkDone3 = ref(false);
 
 useHead({
   title: "Dashboard",

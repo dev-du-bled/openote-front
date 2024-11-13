@@ -6,26 +6,72 @@
         <v-row>
           <v-col cols="12" md="6" class="pr-0">
             <v-list>
-              <div v-for="(homework, index) in homeworks" :key="index">
+              <v-list-subheader>Pending Homeworks</v-list-subheader>
+              <div
+                v-for="(homework, index) in homeworks.filter(
+                  (hw) => !hw.is_done
+                )"
+                :key="index"
+              >
                 <v-list-item
-                  :variant="homework.is_done ? 'plain' : 'flat'"
-                  :key="index"
+                  :variant="
+                    selectedHomework?.homework_id === homework.homework_id
+                      ? 'tonal'
+                      : 'flat'
+                  "
                   @click="selectHomework(homework)"
                 >
                   <v-list-item-title>
                     {{ homework.homework_title }}
-                    {{ homework.is_done ? "(Done)" : "" }}
                   </v-list-item-title>
                   <v-list-item-subtitle>
                     Due in
                     {{ homework.homework_due_date.toLocaleDateString("fr-FR") }}
                   </v-list-item-subtitle>
                 </v-list-item>
-                <v-divider v-if="index < homeworks.length - 1"></v-divider>
+                <v-divider
+                  v-if="
+                    index < homeworks.filter((hw) => !hw.is_done).length - 1
+                  "
+                ></v-divider>
+              </div>
+              <div v-if="homeworks.filter((hw) => !hw.is_done).length === 0">
+                <v-list-item>
+                  <v-list-item-title>No pending homeworks</v-list-item-title>
+                </v-list-item>
+              </div>
+            </v-list>
+            <v-list v-if="homeworks.filter((hw) => hw.is_done).length > 0">
+              <v-list-subheader>Completed Homeworks</v-list-subheader>
+              <div
+                v-for="(homework, index) in homeworks.filter(
+                  (hw) => hw.is_done
+                )"
+                :key="index"
+              >
+                <v-list-item
+                  :variant="
+                    selectedHomework?.homework_id === homework.homework_id
+                      ? 'tonal'
+                      : 'plain'
+                  "
+                  @click="selectHomework(homework)"
+                >
+                  <v-list-item-title>
+                    {{ homework.homework_title }} (Done)
+                  </v-list-item-title>
+                  <v-list-item-subtitle>
+                    Due in
+                    {{ homework.homework_due_date.toLocaleDateString("fr-FR") }}
+                  </v-list-item-subtitle>
+                </v-list-item>
+                <v-divider
+                  v-if="index < homeworks.filter((hw) => hw.is_done).length - 1"
+                ></v-divider>
               </div>
             </v-list>
           </v-col>
-          <v-divider :vertical="true"></v-divider>
+          <v-divider :vertical="true" />
           <v-col cols="12" md="6">
             <div v-if="selectedHomework">
               <h3>{{ selectedHomework.homework_title }}</h3>
@@ -39,6 +85,11 @@
                 }}
               </p>
               <p>Details: {{ selectedHomework.homework_details }}</p>
+              <v-checkbox-btn
+                v-model="selectedHomework.is_done"
+                label="Mark as done"
+                @change="changeHomeworkStatus(selectedHomework)"
+              ></v-checkbox-btn>
             </div>
             <div v-else>
               <p>Select a homework to see the details</p>
@@ -47,6 +98,9 @@
         </v-row>
       </v-card-text>
     </v-card>
+    <v-snackbar color="error" :timer="true" v-model="errorSnackbar">
+      <p>Error when updating homework status</p>
+    </v-snackbar>
   </v-container>
 </template>
 
@@ -54,22 +108,38 @@
 import type { HomeworkItem } from "~/utils/types/homework";
 
 const componentLoading = ref(true);
+const router = useRouter();
+const selectedHomework = ref<HomeworkItem | null>(null);
 const homeworks = ref<HomeworkItem[]>([]);
+const errorSnackbar = ref(false);
 
 const loadHomeworks = async () => {
+  componentLoading.value = true;
   const session = useCookie<SessionContent>("session");
-  if (!session.value) logout();
-  await $fetch(`${apiUrl}/homework`, {
-    headers: {
-      Authorization: session.value.session_token,
-    },
-  })
+  if (!session.value?.session_token) logout();
+  await $fetch(
+    `${window.location.protocol}//${window.location.hostname}:8000/homework`,
+    {
+      headers: {
+        Authorization: session.value.session_token,
+      },
+    }
+  )
     .then((data) => {
-      console.log(data);
       homeworks.value = (data as HomeworkItem[]).map((homework) => ({
         ...homework,
         homework_due_date: new Date(homework.homework_due_date),
       }));
+      if (router.currentRoute.value.query.view) {
+        const homework = homeworks.value.find(
+          (hw) =>
+            hw.homework_id === Number(router.currentRoute.value.query.view)
+        );
+        if (homework) {
+          selectedHomework.value = homework;
+        }
+        router.push({ query: {} });
+      }
       componentLoading.value = false;
     })
     .catch((err) => {
@@ -78,13 +148,42 @@ const loadHomeworks = async () => {
     });
 };
 
+const selectHomework = (homework: HomeworkItem) => {
+  selectedHomework.value = homework;
+};
+
+const changeHomeworkStatus = async (homework: HomeworkItem) => {
+  const session = useCookie<SessionContent>("session");
+  if (!session.value?.session_token) logout();
+  await $fetch(
+    `${window.location.protocol}//${window.location.hostname}:8000/homework/status`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: session.value.session_token,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        is_done: homework.is_done,
+        homework_id: homework.homework_id,
+      }),
+    }
+  )
+    .then(() => {
+      loadHomeworks();
+    })
+    .catch((err) => {
+      console.error(err);
+      errorSnackbar.value = true;
+      homework.is_done = !homework.is_done;
+    });
+};
+
 onMounted(() => {
   loadHomeworks();
 });
 
-const selectedHomework = ref<HomeworkItem | null>(null);
-
-function selectHomework(homework: HomeworkItem) {
-  selectedHomework.value = homework;
-}
+useHead({
+  title: "Homeworks",
+});
 </script>

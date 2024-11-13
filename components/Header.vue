@@ -46,7 +46,10 @@
       </template>
       <v-spacer />
       <v-btn icon to="/account" v-if="userStatus != 'none'">
-        <v-icon>mdi-account</v-icon>
+        <v-avatar v-if="userProfilePicture" size="x-small">
+          <v-img :src="userProfilePicture" alt="Profile Picture" />
+        </v-avatar>
+        <v-icon v-else>mdi-account</v-icon>
       </v-btn>
       <v-btn icon @click="logout(false)" v-if="userStatus != 'none'">
         <v-icon>mdi-logout</v-icon>
@@ -110,9 +113,10 @@
 
 <script setup lang="ts">
 const drawer = ref(false);
-import { userStatus, type UserStatus } from "@/composables/currentUser";
+import { userStatus, type UserStatus } from "~/composables/useCurrentUser";
 import { logout } from "@/utils/logout";
 import { useDisplay } from "vuetify/lib/framework.mjs";
+import { userProfilePicture } from "@/composables/useUserProfile";
 
 const { mobile } = useDisplay();
 
@@ -128,7 +132,7 @@ const headerItems: headerItem[] = [
   { title: "Home", to: "/", icon: "mdi-home" },
   { title: "Calendar", to: "/calendar", icon: "mdi-calendar" },
   {
-    title: "Homework",
+    title: "Homeworks",
     to: "/student/homeworks",
     icon: "mdi-book-open",
     role: ["student"],
@@ -140,13 +144,18 @@ const headerItems: headerItem[] = [
     role: ["student"],
   },
   {
-    title: "Nav2",
-    items: [
-      { title: "Register", to: "/register" },
-      { title: "Login", to: "/login" },
-    ],
-    icon: "mdi-account",
+    title: "Attendance",
+    to: "/student/attendance",
+    icon: "mdi-check",
+    role: ["student"],
   },
-  { title: "Nav3", to: "/index2", icon: "mdi-account" },
+  // {
+  //   title: "Nav2",
+  //   items: [
+  //     { title: "Register", to: "/register" },
+  //     { title: "Login", to: "/login" },
+  //   ],
+  //   icon: "mdi-account",
+  // },
 ];
 </script>

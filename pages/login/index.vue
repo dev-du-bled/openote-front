@@ -56,14 +56,12 @@
 </template>
 
 <script setup lang="ts">
-import apiUrl from "~/utils/apiUrl";
-
 const forgotPassword = ref(false);
 const forgotPasswordEmail = ref("");
 const forgotPasswordDialog = ref(false);
 const loading = ref(false);
 const errorMsg = ref("");
-const email = ref("student1@example.com");
+const email = ref("teacher@example.com");
 const password = ref("password");
 const passwordVisible = ref(false);
 const longerSession = ref(false);
@@ -71,17 +69,20 @@ const longerSession = ref(false);
 const login = async () => {
   loading.value = true;
   try {
-    await $fetch(`${apiUrl}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: email.value,
-        password: password.value,
-        extended_period: longerSession.value,
-      }),
-    })
+    await $fetch(
+      `${window.location.protocol}//${window.location.hostname}:8000/auth/login`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.value,
+          password: password.value,
+          extended_period: longerSession.value,
+        }),
+      }
+    )
       .then((data) => {
         const session = useCookie<SessionContent>("session");
         session.value = data as SessionContent;

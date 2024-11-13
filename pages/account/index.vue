@@ -28,7 +28,6 @@
 </template>
 
 <script setup lang="ts">
-import apiUrl from "~/utils/apiUrl";
 import { logout } from "~/utils/logout";
 
 const user = ref({
@@ -45,12 +44,15 @@ const loadUser = async () => {
   const token = session.value ? session.value.session_token : null;
   if (!token) return logout();
 
-  await $fetch(`${apiUrl}/user`, {
-    method: "GET",
-    headers: {
-      Authorization: token,
-    },
-  })
+  await $fetch(
+    `${window.location.protocol}//${window.location.hostname}:8000/user`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: token,
+      },
+    }
+  )
     .then((res: any) => {
       console.log(res);
       user.value.profile_picture = res["profile_picture"];
@@ -68,6 +70,6 @@ onMounted(() => {
 });
 
 useHead({
-  title: "My account",
+  title: "Account",
 });
 </script>

@@ -5,7 +5,7 @@
     :loading="componentLoading"
   >
     <template v-slot:append>
-      <v-btn to="/calendar" icon="mdi-open-in-new" variant="text"> </v-btn>
+      <v-btn to="/student/marks" icon="mdi-open-in-new" variant="text"> </v-btn>
     </template>
     <v-card-text v-if="!componentLoading">
       <v-list v-if="marks.length > 0">
@@ -14,22 +14,28 @@
             <template v-slot:prepend>
               <p
                 class="text-h6 font-weight-black pr-4"
-                :class="mark.value / mark.max_mark < 0.4 ? 'text-red' : ''"
+                :class="
+                  mark.mark_value / mark.exam_max_mark < 0.4
+                    ? 'text-red'
+                    : mark.mark_value / mark.exam_max_mark < 0.7
+                    ? 'text-orange'
+                    : 'text-green'
+                "
                 style="min-width: 90px; text-align: center"
               >
-                {{ mark.value }}/{{ mark.max_mark }}
+                {{ mark.mark_value }}/{{ mark.exam_max_mark }}
               </p>
             </template>
             <v-list-item-title
-              >{{ mark.title }}
+              >{{ mark.exam_title }}
               <span class="text-body-2"
-                >({{ mark.unit }})</span
+                >({{ mark.exam_unit }})</span
               ></v-list-item-title
             >
             <v-list-item-subtitle
               >Added the
               {{
-                new Date(mark.date).toLocaleDateString("fr-FR")
+                new Date(mark.exam_date).toLocaleDateString("fr-FR")
               }}</v-list-item-subtitle
             >
           </v-list-item>
@@ -59,31 +65,27 @@
 </template>
 
 <script setup lang="ts">
-type mark = {
-  value: number;
-  max_mark: number;
-  coefficient: number;
-  unit: string;
-  title: string;
-  date: Date;
-};
+import type { MarkItem } from "@/utils/types/mark";
 
 const componentLoading = ref(true);
-const marks = ref<mark[]>([]);
+const marks = ref<MarkItem[]>([]);
 
 const loadMarks = async () => {
   const session = useCookie<SessionContent>("session");
   if (!session.value) logout();
-  await $fetch(`${apiUrl}/marks`, {
-    headers: {
-      Authorization: session.value.session_token,
-    },
-    params: {
-      max_mark: 3,
-    },
-  })
+  await $fetch(
+    `${window.location.protocol}//${window.location.hostname}:8000/marks`,
+    {
+      headers: {
+        Authorization: session.value.session_token,
+      },
+      params: {
+        max_mark: 3,
+      },
+    }
+  )
     .then((data) => {
-      marks.value = data as mark[];
+      marks.value = data as MarkItem[];
       componentLoading.value = false;
     })
     .catch((err) => {

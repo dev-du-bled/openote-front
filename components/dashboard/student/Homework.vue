@@ -20,11 +20,16 @@
                 <v-checkbox-btn
                   :id="'homework-' + index"
                   v-model="homework.is_done"
+                  @change="changeHomeworkStatus(homework)"
                 ></v-checkbox-btn>
               </v-list-item-action>
             </template>
             <template v-slot:append>
-              <v-btn icon variant="text">
+              <v-btn
+                icon
+                variant="text"
+                :to="`/student/homeworks?view=${homework.homework_id}`"
+              >
                 <v-icon>mdi-eye</v-icon>
               </v-btn>
             </template>
@@ -63,6 +68,9 @@
         class="mb-4"
       ></v-skeleton-loader>
     </v-card-text>
+    <v-snackbar v-model="errorSnackbar" color="error" :timer="true">
+      <p>Error when updating homework status</p>
+    </v-snackbar>
   </v-card>
 </template>
 
@@ -71,21 +79,25 @@ import type { HomeworkItem } from "~/utils/types/homework";
 
 const componentLoading = ref(true);
 const homeworks = ref<HomeworkItem[]>([]);
+const errorSnackbar = ref(false);
 
 const loadHomeworks = async () => {
+  componentLoading.value = true;
   const session = useCookie<SessionContent>("session");
   if (!session.value) logout();
-  await $fetch(`${apiUrl}/homework/`, {
-    headers: {
-      Authorization: session.value.session_token,
-    },
-    params: {
-      max_homework: 3,
-      show_not_completed_only: true,
-    },
-  })
+  await $fetch(
+    `${window.location.protocol}//${window.location.hostname}:8000/homework`,
+    {
+      headers: {
+        Authorization: session.value.session_token,
+      },
+      params: {
+        max_homework: 3,
+        show_not_completed_only: true,
+      },
+    }
+  )
     .then((data) => {
-      console.log(data);
       homeworks.value = (data as HomeworkItem[]).map((homework) => ({
         ...homework,
         homework_due_date: new Date(homework.homework_due_date),
@@ -95,6 +107,31 @@ const loadHomeworks = async () => {
     .catch((err) => {
       console.error(err);
       componentLoading.value = false;
+    });
+};
+
+const changeHomeworkStatus = async (homework: HomeworkItem) => {
+  const session = useCookie<SessionContent>("session");
+  if (!session.value) logout();
+  await $fetch(
+    `${window.location.protocol}//${window.location.hostname}:8000/homework/status`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: session.value.session_token,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        is_done: homework.is_done,
+        homework_id: homework.homework_id,
+      }),
+    }
+  )
+    .then(() => {
+      loadHomeworks();
+    })
+    .catch(() => {
+      errorSnackbar.value = true;
     });
 };
 

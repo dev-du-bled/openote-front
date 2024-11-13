@@ -1,5 +1,4 @@
-import apiUrl from "./apiUrl";
-import { setUserStatus, type UserStatus } from "~/composables/currentUser";
+import { setUserStatus, type UserStatus } from "~/composables/useCurrentUser";
 
 type SessionContent = {
   session_token: string;
@@ -24,13 +23,16 @@ const logout = async (expired: boolean = true) => {
   const token = session.value?.session_token;
 
   if (token) {
-    await $fetch(`${apiUrl}/auth/logout`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `${token}`,
-      },
-    }).catch(() => {}); // Ignore errors if token is invalid/expired
+    await $fetch(
+      `${window.location.protocol}//${window.location.hostname}:8000/auth/logout`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${token}`,
+        },
+      }
+    ).catch(() => {}); // Ignore errors if token is invalid/expired
   }
   return backToLogin(expired);
 };

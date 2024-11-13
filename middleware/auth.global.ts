@@ -1,9 +1,9 @@
-import { setUserStatus } from "~/composables/currentUser";
+import { setUserStatus } from "~/composables/useCurrentUser";
 import { logout } from "~/utils/logout";
 import type { SessionContent } from "~/utils/logout";
 
-export default defineNuxtRouteMiddleware((to, from) => {
-  if (import.meta.env.SSR) return;
+export default defineNuxtRouteMiddleware(async (to, from) => {
+  if (import.meta.server) return;
 
   const config = useRuntimeConfig();
   const publicRoutes = ["/login", "/register"];
@@ -12,7 +12,6 @@ export default defineNuxtRouteMiddleware((to, from) => {
     return;
   }
 
-  // Move cookie initialization inside middleware
   const session = useCookie<SessionContent>("session");
 
   if (!session.value) {
@@ -34,8 +33,24 @@ export default defineNuxtRouteMiddleware((to, from) => {
       return logout();
     }
 
+    // Fetch user profile to validate token and get profile picture
+    await $fetch<{ profile_picture: string }>(
+      `${window.location.protocol}//${window.location.hostname}:8000/user`,
+      {
+        headers: {
+          Authorization: session.value.session_token,
+        },
+      }
+    )
+      .then((data) => {
+        setProfilePicture(data.profile_picture);
+      })
+      .catch((err) => {
+        console.error("Error fetching user profile", err);
+        return logout();
+      });
+
     setUserStatus(session.value.role);
-    // Session is valid, continue navigation
   } catch (e) {
     console.error("Error while parsing session", e);
     return logout();

@@ -93,4 +93,8 @@ onMounted(() => {
     end: adapter.endOfDay(adapter.endOfMonth(new Date())) as Date,
   });
 });
+
+useHead({
+  title: "Calendar",
+});
 </script>

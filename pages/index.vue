@@ -19,6 +19,25 @@
         </v-col>
       </v-row>
     </v-container>
+    <v-container v-else-if="userStatus == 'teacher'">
+      <v-row>
+        <v-col :cols="mobile ? 12 : 5">
+          <dashboard-day-calendar />
+        </v-col>
+        <v-col :cols="mobile ? 12 : 7">
+          <v-row>
+            <v-col>
+              <dashboard-teacher-homework />
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col>
+              <dashboard-teacher-marks />
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
+    </v-container>
   </ClientOnly>
 </template>
 

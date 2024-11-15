@@ -7,9 +7,12 @@
       <v-alert v-if="errorMsg" closable type="error" class="mb-2">{{
         errorMsg
       }}</v-alert>
-      <v-card :loading="loading" :disabled="loading">
-        <v-card-title>Login</v-card-title>
-        <v-card-subtitle> Login to your OpeNote account </v-card-subtitle>
+      <v-card
+        title="Login"
+        subtitle="Login to your OpeNote account"
+        :loading="loading"
+        :disabled="loading"
+      >
         <v-card-text>
           <v-text-field v-model="email" label="Email" type="email" required />
           <v-text-field
@@ -27,14 +30,46 @@
           />
         </v-card-text>
         <v-card-actions class="bg-surface-light">
-          <v-btn text="" @click="forgotPasswordDialog = true"
+          <!-- <v-btn text="" @click="forgotPasswordDialog = true"
             >Forgot password ?</v-btn
-          >
+          > -->
           <v-spacer />
           <v-btn text="" type="submit" color="primary">Login</v-btn>
         </v-card-actions>
       </v-card>
     </v-form>
+    <v-card
+      title="Login as (Debug only)"
+      style="margin: 0 auto; max-width: 400px"
+      class="mt-3"
+    >
+      <v-card-actions>
+        <v-btn
+          @click="
+            email = 'student1@example.com';
+            password = 'password';
+          "
+          variant="text"
+          >Student 1</v-btn
+        >
+        <v-btn
+          @click="
+            email = 'student2@example.com';
+            password = 'password';
+          "
+          variant="text"
+          >Student 2</v-btn
+        >
+        <v-btn
+          @click="
+            email = 'teacher@example.com';
+            password = 'password';
+          "
+          variant="text"
+          >Teacher</v-btn
+        >
+      </v-card-actions>
+    </v-card>
     <v-dialog v-model="forgotPasswordDialog" max-width="750px">
       <v-card :loading="loading" :disabled="loading">
         <v-card-title>Forgot password</v-card-title>
@@ -56,6 +91,8 @@
 </template>
 
 <script setup lang="ts">
+const router = useRouter();
+
 const forgotPassword = ref(false);
 const forgotPasswordEmail = ref("");
 const forgotPasswordDialog = ref(false);
@@ -115,6 +152,7 @@ onMounted(() => {
   } else if (urlParams.has("expired")) {
     errorMsg.value = "Your session has expired";
   }
+  router.push({ query: {} });
 });
 
 useHead({

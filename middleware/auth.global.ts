@@ -5,7 +5,6 @@ import type { SessionContent } from "~/utils/logout";
 export default defineNuxtRouteMiddleware(async (to, from) => {
   if (import.meta.server) return;
 
-  const config = useRuntimeConfig();
   const publicRoutes = ["/login", "/register"];
 
   if (publicRoutes.includes(to.path)) {
@@ -34,6 +33,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     }
 
     // Fetch user profile to validate token and get profile picture
+    // This call is made here because it's avoid to have another one in the header component
     await $fetch<{ profile_picture: string }>(
       `${window.location.protocol}//${window.location.hostname}:8000/user`,
       {

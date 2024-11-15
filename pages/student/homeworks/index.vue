@@ -1,7 +1,18 @@
 <template>
   <v-container>
-    <v-card :disabled="componentLoading" :loading="componentLoading">
-      <v-card-title>Homeworks</v-card-title>
+    <v-card
+      title="Homeworks"
+      :disabled="componentLoading"
+      :loading="componentLoading"
+    >
+      <template v-slot:append>
+        <v-btn
+          @click="addSelfHomeworkDialog = true"
+          icon="mdi-plus"
+          variant="text"
+        >
+        </v-btn>
+      </template>
       <v-card-text>
         <v-row>
           <v-col cols="12" md="6" class="pr-0">
@@ -101,17 +112,48 @@
     <v-snackbar color="error" :timer="true" v-model="errorSnackbar">
       <p>Error when updating homework status</p>
     </v-snackbar>
+    <v-dialog v-model="addSelfHomeworkDialog" max-width="750px">
+      <v-card title="Add a self homework">
+        <v-card-text>
+          <v-text-field
+            v-model="newHomeworkTitle"
+            label="Title"
+            required
+          ></v-text-field>
+          <v-textarea
+            v-model="newHomeworkDetails"
+            label="Details"
+            required
+          ></v-textarea>
+          <v-date-input
+            v-model="newHomeworkDueDate"
+            label="Date"
+          ></v-date-input>
+        </v-card-text>
+        <v-card-actions class="bg-surface-light">
+          <v-btn variant="text" @click="addSelfHomeworkDialog = false"
+            >Cancel</v-btn
+          >
+          <v-btn color="primary" @click="addSelfHomework">Add</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup lang="ts">
 import type { HomeworkItem } from "~/utils/types/homework";
 
-const componentLoading = ref(true);
 const router = useRouter();
+
+const componentLoading = ref(true);
 const selectedHomework = ref<HomeworkItem | null>(null);
 const homeworks = ref<HomeworkItem[]>([]);
 const errorSnackbar = ref(false);
+const addSelfHomeworkDialog = ref(false);
+const newHomeworkTitle = ref("");
+const newHomeworkDetails = ref("");
+const newHomeworkDueDate = ref(new Date());
 
 const loadHomeworks = async () => {
   componentLoading.value = true;
@@ -178,6 +220,8 @@ const changeHomeworkStatus = async (homework: HomeworkItem) => {
       homework.is_done = !homework.is_done;
     });
 };
+
+const addSelfHomework = async () => {};
 
 onMounted(() => {
   loadHomeworks();

@@ -1,7 +1,10 @@
 <template>
   <v-container>
-    <v-card :disabled="componentLoading" :loading="componentLoading">
-      <v-card-title>Marks</v-card-title>
+    <v-card
+      title="Marks"
+      :disabled="componentLoading"
+      :loading="componentLoading"
+    >
       <v-card-text>
         <div v-for="(marks, unit) in groupedMarks" :key="unit">
           <v-list>

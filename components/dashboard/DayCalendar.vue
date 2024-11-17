@@ -7,10 +7,8 @@
       <v-calendar
         :hide-header="true"
         ref="calendar"
-        v-model="value"
         :events="events"
         view-mode="day"
-        :weekdays="weekday"
         :interval-start="7"
         :intervals="12"
       ></v-calendar>
@@ -18,21 +16,10 @@
   </v-card>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useDate } from "vuetify";
 
-const weekday = ref([1, 2, 3, 4, 5]);
-const value = ref([new Date()]);
-
-interface Event {
-  title: string;
-  start: Date;
-  end: Date;
-  color: string;
-  allDay: boolean;
-}
-
-const events = ref<Event[]>([]);
+const events = ref<Array<any>>([]);
 const colors = [
   "blue",
   "indigo",
@@ -42,7 +29,7 @@ const colors = [
   "orange",
   "grey darken-1",
 ];
-const titles = [
+const names = [
   "Meeting",
   "Holiday",
   "PTO",
@@ -53,8 +40,15 @@ const titles = [
   "Party",
 ];
 
-const getEvents = ({ start, end }: { start: Date; end: Date }) => {
-  const generatedEvents = [];
+const adapter = useDate();
+
+const getEventColor = (event: any) => {
+  return event.color;
+};
+
+const fetchEvents = ({ start, end }: { start: Date; end: Date }) => {
+  const eventList: Array<any> = [];
+
   const min = start;
   const max = end;
   const days = (max.getTime() - min.getTime()) / 86400000;
@@ -67,8 +61,8 @@ const getEvents = ({ start, end }: { start: Date; end: Date }) => {
     const secondTimestamp = rnd(2, allDay ? 288 : 8) * 900000;
     const second = new Date(first.getTime() + secondTimestamp);
 
-    generatedEvents.push({
-      title: titles[rnd(0, titles.length - 1)],
+    eventList.push({
+      title: names[rnd(0, names.length - 1)],
       start: first,
       end: second,
       color: colors[rnd(0, colors.length - 1)],
@@ -76,19 +70,15 @@ const getEvents = ({ start, end }: { start: Date; end: Date }) => {
     });
   }
 
-  events.value = generatedEvents;
+  events.value = eventList;
 };
 
-interface Event {
-  color: string;
-}
-
-const rnd = (a: number, b: number) =>
-  Math.floor((b - a + 1) * Math.random()) + a;
+const rnd = (a: number, b: number) => {
+  return Math.floor((b - a + 1) * Math.random()) + a;
+};
 
 onMounted(() => {
-  const adapter = useDate();
-  getEvents({
+  fetchEvents({
     start: adapter.startOfDay(adapter.startOfMonth(new Date())) as Date,
     end: adapter.endOfDay(adapter.endOfMonth(new Date())) as Date,
   });

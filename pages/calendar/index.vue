@@ -2,7 +2,6 @@
   <v-container>
     <v-calendar
       ref="calendar"
-      v-model="value"
       :events="events"
       :view-mode="mobile ? 'day' : 'week'"
       :weekdays="weekday"
@@ -12,24 +11,12 @@
   </v-container>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted } from "vue";
+<script lang="ts" setup>
 import { useDate, useDisplay } from "vuetify";
 
 const { mobile } = useDisplay();
-
-const weekday = ref([1, 2, 3, 4, 5]);
-const value = ref([new Date()]);
-
-interface Event {
-  title: string;
-  start: Date;
-  end: Date;
-  color: string;
-  allDay: boolean;
-}
-
-const events = ref<Event[]>([]);
+const weekday = [1, 2, 3, 4, 5];
+const events = ref<Array<any>>([]);
 const colors = [
   "blue",
   "indigo",
@@ -39,7 +26,7 @@ const colors = [
   "orange",
   "grey darken-1",
 ];
-const titles = [
+const names = [
   "Meeting",
   "Holiday",
   "PTO",
@@ -52,8 +39,12 @@ const titles = [
 
 const adapter = useDate();
 
-const getEvents = ({ start, end }: { start: Date; end: Date }) => {
-  const eventList = [];
+const getEventColor = (event: any) => {
+  return event.color;
+};
+
+const fetchEvents = ({ start, end }: { start: Date; end: Date }) => {
+  const eventList: Array<any> = [];
 
   const min = start;
   const max = end;
@@ -68,7 +59,7 @@ const getEvents = ({ start, end }: { start: Date; end: Date }) => {
     const second = new Date(first.getTime() + secondTimestamp);
 
     eventList.push({
-      title: titles[rnd(0, titles.length - 1)],
+      title: names[rnd(0, names.length - 1)],
       start: first,
       end: second,
       color: colors[rnd(0, colors.length - 1)],
@@ -79,22 +70,14 @@ const getEvents = ({ start, end }: { start: Date; end: Date }) => {
   events.value = eventList;
 };
 
-const getEventColor = (event: Event) => {
-  return event.color;
-};
-
-const rnd = (a: number, b: number): number => {
+const rnd = (a: number, b: number) => {
   return Math.floor((b - a + 1) * Math.random()) + a;
 };
 
 onMounted(() => {
-  getEvents({
+  fetchEvents({
     start: adapter.startOfDay(adapter.startOfMonth(new Date())) as Date,
     end: adapter.endOfDay(adapter.endOfMonth(new Date())) as Date,
   });
-});
-
-useHead({
-  title: "Calendar",
 });
 </script>

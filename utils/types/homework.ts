@@ -4,5 +4,6 @@ export type HomeworkItem = {
   homework_due_date: Date;
   author_name: string;
   is_done: boolean;
+  is_author: boolean;
   homework_id: number;
 };

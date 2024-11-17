@@ -32,6 +32,13 @@
                   "
                   @click="selectHomework(homework)"
                 >
+                  <template
+                    v-slot:prepend
+                    v-if="homework.is_author"
+                    class="d-block"
+                  >
+                    <v-icon icon="mdi-account-school"></v-icon>
+                  </template>
                   <v-list-item-title>
                     {{ homework.homework_title }}
                   </v-list-item-title>
@@ -68,6 +75,9 @@
                   "
                   @click="selectHomework(homework)"
                 >
+                  <template v-slot:prepend v-if="homework.is_author">
+                    <v-icon icon="mdi-account-school"></v-icon>
+                  </template>
                   <v-list-item-title>
                     {{ homework.homework_title }} (Done)
                   </v-list-item-title>
@@ -95,6 +105,7 @@
                   selectedHomework.homework_due_date.toLocaleDateString("fr-FR")
                 }}
               </p>
+              <p v-if="selectedHomework.is_author">Is self asigned: Yes</p>
               <p>Details: {{ selectedHomework.homework_details }}</p>
               <v-checkbox-btn
                 v-model="selectedHomework.is_done"
@@ -109,9 +120,6 @@
         </v-row>
       </v-card-text>
     </v-card>
-    <v-snackbar color="error" :timer="true" v-model="errorSnackbar">
-      <p>Error when updating homework status</p>
-    </v-snackbar>
     <v-dialog v-model="addSelfHomeworkDialog" max-width="750px">
       <v-card title="Add a self homework">
         <v-card-text>
@@ -138,6 +146,12 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-snackbar
+      color="error"
+      timer="#730800"
+      :text="errorSnackbar"
+      v-model="isErrorSnackbarVisible"
+    ></v-snackbar>
   </v-container>
 </template>
 
@@ -149,7 +163,13 @@ const router = useRouter();
 const componentLoading = ref(true);
 const selectedHomework = ref<HomeworkItem | null>(null);
 const homeworks = ref<HomeworkItem[]>([]);
-const errorSnackbar = ref(false);
+const errorSnackbar = ref<string>("");
+const isErrorSnackbarVisible = computed({
+  get: () => errorSnackbar.value.length > 0,
+  set: (value) => {
+    if (!value) errorSnackbar.value = "";
+  },
+});
 const addSelfHomeworkDialog = ref(false);
 const newHomeworkTitle = ref("");
 const newHomeworkDetails = ref("");
@@ -182,6 +202,7 @@ const loadHomeworks = async () => {
         }
         router.push({ query: {} });
       }
+      console.log(homeworks.value);
       componentLoading.value = false;
     })
     .catch((err) => {
@@ -216,12 +237,41 @@ const changeHomeworkStatus = async (homework: HomeworkItem) => {
     })
     .catch((err) => {
       console.error(err);
-      errorSnackbar.value = true;
+      errorSnackbar.value = "Error when updating homework status";
       homework.is_done = !homework.is_done;
     });
 };
 
-const addSelfHomework = async () => {};
+const addSelfHomework = async () => {
+  if (!newHomeworkTitle.value || !newHomeworkDetails.value)
+    return (errorSnackbar.value = "Title and details are required");
+  const session = useCookie<SessionContent>("session");
+  if (!session.value?.session_token) logout();
+  await $fetch(
+    `${window.location.protocol}//${window.location.hostname}:8000/homework`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: session.value.session_token,
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify({
+        homework_title: newHomeworkTitle.value,
+        homework_details: newHomeworkDetails.value,
+        homework_due_date: newHomeworkDueDate.value,
+      }),
+    }
+  )
+    .then(() => {
+      loadHomeworks();
+      addSelfHomeworkDialog.value = false;
+    })
+    .catch((err) => {
+      console.error(err);
+      errorSnackbar.value = "Error when adding homework";
+    });
+};
 
 onMounted(() => {
   loadHomeworks();

@@ -98,8 +98,8 @@ const forgotPasswordEmail = ref("");
 const forgotPasswordDialog = ref(false);
 const loading = ref(false);
 const errorMsg = ref("");
-const email = ref("teacher@example.com");
-const password = ref("password");
+const email = ref("");
+const password = ref("");
 const passwordVisible = ref(false);
 const longerSession = ref(false);
 

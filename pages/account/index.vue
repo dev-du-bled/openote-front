@@ -10,34 +10,83 @@
       <template v-slot:append>
         <v-avatar size="64">
           <v-img
-            alt="John"
-            src="https://cdn.discordapp.com/attachments/1025087065580384316/1289147373788074056/OIP.png?ex=6713730d&is=6712218d&hm=ec28127f1d0e53f3b60907ac75e2fd55c00fdc39f6ffce215c2720049fed75ec&"
+            draggable="false"
+            :alt="`${user?.firstname} ${user?.lastname} profile picture`"
+            :src="user?.profile_picture"
           ></v-img>
         </v-avatar>
       </template>
 
-      <v-card-text>
-        <v-form></v-form>
+      <v-card-text v-if="user">
+        <p class="ma-1 mb-2">
+          Name: {{ user.firstname }} {{ user.lastname }}<br />
+          Role: {{ user.role }}<br />
+          Pronouns: {{ user.pronouns }}
+        </p>
+        <v-text-field
+          v-model="user.email"
+          label="Email"
+          type="email"
+        ></v-text-field>
+      </v-card-text>
+      <v-card-text v-else-if="!loading">
+        <p>Loading seems to have failed</p>
+      </v-card-text>
+      <v-card-text v-else>
+        <p>Loading...</p>
       </v-card-text>
       <v-card-actions class="bg-surface-light">
+        <v-btn @click="changePasswordDialog = true" variant="text"
+          >Change password</v-btn
+        >
         <v-spacer />
-        <v-btn text="" color="primary">Save</v-btn>
+        <v-btn variant="text" color="primary">Save</v-btn>
       </v-card-actions>
     </v-card>
+    <v-dialog v-model="changePasswordDialog" max-width="700px">
+      <v-card title="Change password" subtitle="Change your account password">
+        <v-card-text>
+          <v-text-field
+            v-model="password.current"
+            label="Current password"
+            type="password"
+          ></v-text-field>
+          <v-text-field
+            v-model="password.new"
+            label="New password"
+            type="password"
+          ></v-text-field>
+          <v-text-field
+            v-model="password.confirm"
+            label="Confirm new password"
+            type="password"
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions class="bg-surface-light">
+          <v-spacer />
+          <v-btn @click="changePasswordDialog = false" variant="text"
+            >Cancel</v-btn
+          >
+          <v-btn color="primary">Save</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup lang="ts">
 import { logout } from "~/utils/logout";
+import type { User } from "~/utils/types/user";
 
-const user = ref({
-  firstName: "John",
-  lastName: "Doe",
-  email: "",
-  profile_picture: "",
+const user = ref<User>();
+const password = ref({
+  current: "",
+  new: "",
+  confirm: "",
 });
 const loading = ref(true);
 const errorMsg = ref("");
+const changePasswordDialog = ref(false);
 
 const loadUser = async () => {
   const session = useCookie<SessionContent>("session");
@@ -55,13 +104,36 @@ const loadUser = async () => {
   )
     .then((res: any) => {
       console.log(res);
-      user.value.profile_picture = res["profile_picture"];
+      user.value = res;
       loading.value = false;
     })
     .catch((err) => {
-      if (err.status == 422) return logout(); // the token is invalid, logout
       errorMsg.value = err.data.detail ? err.data.detail : "An error occurred";
       loading.value = false;
+    });
+};
+
+const saveAccountChanges = async () => {
+  const session = useCookie<SessionContent>("session");
+  const token = session.value ? session.value.session_token : null;
+  if (!token) return logout();
+
+  await $fetch(
+    `${window.location.protocol}//${window.location.hostname}:8000/user`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: token,
+      },
+      body: JSON.stringify(user.value),
+    }
+  )
+    .then((res: any) => {
+      console.log(res);
+      user.value = res;
+    })
+    .catch((err) => {
+      errorMsg.value = err.data.detail ? err.data.detail : "An error occurred";
     });
 };
 

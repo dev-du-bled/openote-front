@@ -6,6 +6,13 @@
       :loading="componentLoading"
     >
       <template v-slot:append>
+        <!-- TODO: Homework past history -->
+        <v-btn
+          @click="addSelfHomeworkDialog = true"
+          icon="mdi-clock-outline"
+          variant="text"
+        >
+        </v-btn>
         <v-btn
           @click="addSelfHomeworkDialog = true"
           icon="mdi-plus"
@@ -15,7 +22,7 @@
       </template>
       <v-card-text>
         <v-row>
-          <v-col cols="12" md="6" class="pr-0">
+          <v-col cols="12" md="6">
             <v-list>
               <v-list-subheader>Pending Homeworks</v-list-subheader>
               <div
@@ -25,6 +32,7 @@
                 :key="index"
               >
                 <v-list-item
+                  :prepend-icon="homework.is_author ? 'mdi-account-school' : ''"
                   :variant="
                     selectedHomework?.homework_id === homework.homework_id
                       ? 'tonal'
@@ -32,17 +40,20 @@
                   "
                   @click="selectHomework(homework)"
                 >
-                  <template
-                    v-slot:prepend
-                    v-if="homework.is_author"
-                    class="d-block"
-                  >
-                    <v-icon icon="mdi-account-school"></v-icon>
-                  </template>
                   <v-list-item-title>
                     {{ homework.homework_title }}
                   </v-list-item-title>
-                  <v-list-item-subtitle>
+                  <v-list-item-subtitle
+                    :class="
+                      homework.homework_due_date < new Date()
+                        ? 'text-red-accent-4'
+                        : homework.homework_due_date.getTime() -
+                            new Date().getTime() <
+                          86400000
+                        ? 'orange-darken-4'
+                        : ''
+                    "
+                  >
                     Due in
                     {{ homework.homework_due_date.toLocaleDateString("fr-FR") }}
                   </v-list-item-subtitle>
@@ -68,6 +79,7 @@
                 :key="index"
               >
                 <v-list-item
+                  :prepend-icon="homework.is_author ? 'mdi-account-school' : ''"
                   :variant="
                     selectedHomework?.homework_id === homework.homework_id
                       ? 'tonal'
@@ -75,9 +87,6 @@
                   "
                   @click="selectHomework(homework)"
                 >
-                  <template v-slot:prepend v-if="homework.is_author">
-                    <v-icon icon="mdi-account-school"></v-icon>
-                  </template>
                   <v-list-item-title>
                     {{ homework.homework_title }} (Done)
                   </v-list-item-title>
@@ -136,6 +145,8 @@
           <v-date-input
             v-model="newHomeworkDueDate"
             label="Date"
+            :min="new Date(Date.now() + 86400000).toISOString().split('T')[0]"
+            required
           ></v-date-input>
         </v-card-text>
         <v-card-actions class="bg-surface-light">
@@ -173,7 +184,7 @@ const isErrorSnackbarVisible = computed({
 const addSelfHomeworkDialog = ref(false);
 const newHomeworkTitle = ref("");
 const newHomeworkDetails = ref("");
-const newHomeworkDueDate = ref(new Date());
+const newHomeworkDueDate = ref(new Date(Date.now() + 86400000));
 
 const loadHomeworks = async () => {
   componentLoading.value = true;
@@ -244,11 +255,11 @@ const changeHomeworkStatus = async (homework: HomeworkItem) => {
 
 const addSelfHomework = async () => {
   if (!newHomeworkTitle.value || !newHomeworkDetails.value)
-    return (errorSnackbar.value = "Title and details are required");
+    return (errorSnackbar.value = "Title, details, and date are required");
   const session = useCookie<SessionContent>("session");
   if (!session.value?.session_token) logout();
   await $fetch(
-    `${window.location.protocol}//${window.location.hostname}:8000/homework`,
+    `${window.location.protocol}//${window.location.hostname}:8000/homework/manage`,
     {
       method: "POST",
       headers: {
@@ -257,9 +268,10 @@ const addSelfHomework = async () => {
       },
 
       body: JSON.stringify({
-        homework_title: newHomeworkTitle.value,
-        homework_details: newHomeworkDetails.value,
-        homework_due_date: newHomeworkDueDate.value,
+        title: newHomeworkTitle.value,
+        details: newHomeworkDetails.value,
+        due_date: newHomeworkDueDate.value.toLocaleDateString("fr-FR"),
+        assigned_class: 0,
       }),
     }
   )
@@ -268,7 +280,7 @@ const addSelfHomework = async () => {
       addSelfHomeworkDialog.value = false;
     })
     .catch((err) => {
-      console.error(err);
+      console.error(err.data);
       errorSnackbar.value = "Error when adding homework";
     });
 };
@@ -281,3 +293,10 @@ useHead({
   title: "Homeworks",
 });
 </script>
+
+<style>
+.v-list-item__spacer {
+  width: 16px !important;
+  /* Little hack to make the student icon not too far in the list */
+}
+</style>

@@ -26,12 +26,7 @@
                     {{ mark.mark_value }}/{{ mark.exam_max_mark }}
                   </p>
                 </template>
-                <v-list-item-title
-                  >{{ mark.exam_title }}
-                  <span class="text-body-2"
-                    >({{ mark.exam_unit }})</span
-                  ></v-list-item-title
-                >
+                <v-list-item-title>{{ mark.exam_title }} </v-list-item-title>
                 <v-list-item-subtitle
                   >Added the
                   {{

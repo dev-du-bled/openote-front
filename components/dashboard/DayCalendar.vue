@@ -6,7 +6,6 @@
     <v-card-text scrollable>
       <v-calendar
         :hide-header="true"
-        ref="calendar"
         :events="events"
         view-mode="day"
         :interval-start="7"

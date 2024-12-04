@@ -1,7 +1,6 @@
 <template>
   <v-container>
     <v-calendar
-      ref="calendar"
       :events="events"
       :view-mode="mobile ? 'day' : 'week'"
       :weekdays="weekday"
@@ -16,6 +15,7 @@ import { useDate, useDisplay } from "vuetify";
 
 const { mobile } = useDisplay();
 const weekday = [1, 2, 3, 4, 5];
+
 const events = ref<Array<any>>([]);
 const colors = [
   "blue",

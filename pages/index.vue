@@ -16,6 +16,11 @@
               <dashboard-student-marks />
             </v-col>
           </v-row>
+          <v-row>
+            <v-col>
+              <dashboard-student-attendance />
+            </v-col>
+          </v-row>
         </v-col>
       </v-row>
     </v-container>

@@ -7,18 +7,26 @@
     >
       <template v-slot:append>
         <!-- TODO: Homework past history -->
-        <v-btn
-          @click="addSelfHomeworkDialog = true"
-          icon="mdi-clock-outline"
-          variant="text"
-        >
-        </v-btn>
-        <v-btn
-          @click="addSelfHomeworkDialog = true"
-          icon="mdi-plus"
-          variant="text"
-        >
-        </v-btn>
+        <v-tooltip text="See homework history">
+          <template v-slot:activator="{ props }">
+            <v-btn
+              v-bind="props"
+              @click="addSelfHomeworkDialog = true"
+              icon="mdi-clock-outline"
+              variant="text"
+            ></v-btn>
+          </template>
+        </v-tooltip>
+        <v-tooltip text="Create a self homework">
+          <template v-slot:activator="{ props }">
+            <v-btn
+              v-bind="props"
+              @click="addSelfHomeworkDialog = true"
+              icon="mdi-plus"
+              variant="text"
+            ></v-btn>
+          </template>
+        </v-tooltip>
       </template>
       <v-card-text>
         <v-row>
@@ -108,7 +116,17 @@
               <p>
                 Status: {{ selectedHomework.is_done ? "Done" : "Not Done" }}
               </p>
-              <p>
+              <p
+                :class="
+                  selectedHomework.homework_due_date < new Date()
+                    ? 'text-red-accent-4'
+                    : selectedHomework.homework_due_date.getTime() -
+                        new Date().getTime() <
+                      86400000
+                    ? 'orange-darken-4'
+                    : ''
+                "
+              >
                 Due Date:
                 {{
                   selectedHomework.homework_due_date.toLocaleDateString("fr-FR")

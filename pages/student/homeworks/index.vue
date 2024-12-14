@@ -151,7 +151,7 @@ const loadHomeworks = async () => {
     componentLoading.value = true;
     const session = useCookie<SessionContent>("session");
     if (!session.value?.session_token) logout();
-    await $fetch(`${config.public.api_base_url}/homework`, {
+    await $fetch(`${config.public.api_base_url}/homework/`, {
         headers: {
             Authorization: session.value.session_token,
         },

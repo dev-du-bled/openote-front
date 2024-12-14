@@ -21,18 +21,16 @@ const backToLogin = (expired: boolean = false) => {
 const logout = async (expired: boolean = true) => {
   const session = getSession();
   const token = session.value?.session_token;
+  const config = useRuntimeConfig();
 
   if (token) {
-    await $fetch(
-      `${window.location.protocol}//${window.location.hostname}:8000/auth/logout`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${token}`,
-        },
-      }
-    ).catch(() => {}); // Ignore errors if token is invalid/expired
+    await $fetch(`${config.public.api_base_url}/auth/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${token}`,
+      },
+    }).catch(() => {}); // Ignore errors if token is invalid/expired
   }
   return backToLogin(expired);
 };

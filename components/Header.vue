@@ -47,9 +47,27 @@
       <v-spacer />
       <v-btn icon to="/account" v-if="userStatus != 'none'">
         <v-avatar v-if="userProfilePicture" size="x-small">
-          <v-img :src="userProfilePicture" alt="Profile Picture" />
+          <v-img :src="userProfilePicture" alt="Profile Picture">
+            <template #error>
+              <v-icon>mdi-account</v-icon>
+            </template>
+          </v-img>
         </v-avatar>
         <v-icon v-else>mdi-account</v-icon>
+      </v-btn>
+      <v-btn
+        icon
+        @click="
+          theme.global.name.value = theme.global.current.value.dark
+            ? 'light'
+            : 'dark'
+        "
+      >
+        <v-icon>{{
+          theme.global.current.value.dark
+            ? "mdi-white-balance-sunny"
+            : "mdi-moon-waning-crescent"
+        }}</v-icon>
       </v-btn>
       <v-btn icon @click="logout(false)" v-if="userStatus != 'none'">
         <v-icon>mdi-logout</v-icon>
@@ -112,12 +130,15 @@
 </style>
 
 <script setup lang="ts">
+import { useTheme } from "vuetify";
+
 const drawer = ref(false);
 import { userStatus, type UserStatus } from "~/composables/useCurrentUser";
 import { logout } from "@/utils/logout";
 import { useDisplay } from "vuetify/lib/framework.mjs";
 import { userProfilePicture } from "@/composables/useUserProfile";
 
+const theme = useTheme();
 const { mobile } = useDisplay();
 
 type headerItem = {

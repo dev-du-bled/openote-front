@@ -1,7 +1,3 @@
-/// Author: Firmin BORRACINO
-///
-/// Description: Adds the vuetify components to the project
-
 import "@mdi/font/css/materialdesignicons.css";
 
 import "vuetify/styles";
@@ -11,7 +7,6 @@ import { VDateInput } from "vuetify/lib/labs/components.mjs";
 
 export default defineNuxtPlugin((app) => {
   const vuetify = createVuetify({
-    // Vuetify config goes here
     components: {
       VCalendar,
       VDateInput,

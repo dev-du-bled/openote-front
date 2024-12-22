@@ -1,12 +1,14 @@
 <template>
   <v-container>
-    <v-calendar
-      :events="events"
-      :view-mode="mobile ? 'day' : 'week'"
-      :weekdays="weekday"
-      :interval-start="7"
-      :intervals="12"
-    />
+    <ClientOnly>
+      <v-calendar
+        :events="events"
+        :view-mode="mobile ? 'day' : 'week'"
+        :weekdays="weekday"
+        :interval-start="7"
+        :intervals="12"
+      />
+    </ClientOnly>
   </v-container>
 </template>
 

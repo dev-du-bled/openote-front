@@ -8,5 +8,5 @@
 </template>
 
 <script setup>
-const devMode = process.env.NODE_ENV === "development";
+const devMode = computed(() => import.meta.env.DEV);
 </script>

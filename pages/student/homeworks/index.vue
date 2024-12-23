@@ -110,8 +110,8 @@
             </v-list>
           </v-col>
           <v-divider :vertical="true" />
-          <v-col cols="12" md="6">
-            <div v-if="selectedHomework">
+          <v-col cols="12" md="6" class="d-flex flex-column fill-height">
+            <div v-if="selectedHomework" class="flex-grow-1">
               <h3>{{ selectedHomework.homework_title }}</h3>
               <p v-if="devMode">
                 Homework ID: {{ selectedHomework.homework_id }}
@@ -146,6 +146,16 @@
             <div v-else>
               <p>Select a homework to see the details</p>
             </div>
+            <div v-if="selectedHomework?.is_author" class="mt-auto">
+              <v-btn
+                color="primary"
+                class="mr-3"
+                prepend-icon="mdi-pencil"
+                @click="editHomeworkFunc(selectedHomework)"
+                >Edit</v-btn
+              >
+              <v-btn color="error" prepend-icon="mdi-delete">Delete</v-btn>
+            </div>
           </v-col>
         </v-row>
       </v-card-text>
@@ -154,17 +164,17 @@
       <v-card title="Add a self homework">
         <v-card-text>
           <v-text-field
-            v-model="newHomeworkTitle"
+            v-model="newHomework.title"
             label="Title"
             required
           ></v-text-field>
           <v-textarea
-            v-model="newHomeworkDetails"
+            v-model="newHomework.details"
             label="Details"
             required
           ></v-textarea>
           <v-date-input
-            v-model="newHomeworkDueDate"
+            v-model="newHomework.dueDate"
             label="Date"
             :min="new Date(Date.now() + 86400000).toISOString().split('T')[0]"
             required
@@ -175,6 +185,33 @@
             >Cancel</v-btn
           >
           <v-btn color="primary" @click="addSelfHomework">Add</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="editHomeworkDialog" max-width="750px">
+      <v-card title="Edit Homework">
+        <v-card-text>
+          <v-text-field
+            v-model="editHomework.title"
+            label="Title"
+            required
+          ></v-text-field>
+          <v-textarea
+            v-model="editHomework.details"
+            label="Details"
+            required
+          ></v-textarea>
+          <v-date-input
+            v-model="editHomework.dueDate"
+            label="Date"
+            required
+          ></v-date-input>
+        </v-card-text>
+        <v-card-actions class="bg-surface-light">
+          <v-btn variant="text" @click="editHomeworkDialog = false"
+            >Cancel</v-btn
+          >
+          <v-btn color="primary" @click="saveEditedHomework">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -203,10 +240,21 @@ const isErrorSnackbarVisible = computed({
     if (!value) errorSnackbar.value = "";
   },
 });
+
 const addSelfHomeworkDialog = ref(false);
-const newHomeworkTitle = ref("");
-const newHomeworkDetails = ref("");
-const newHomeworkDueDate = ref(new Date(Date.now() + 86400000));
+const newHomework = ref({
+  title: "",
+  details: "",
+  dueDate: new Date(Date.now() + 86400000),
+});
+
+const editHomeworkDialog = ref(false);
+const editHomework = ref({
+  title: "",
+  details: "",
+  dueDate: new Date(),
+});
+
 const config = useRuntimeConfig();
 
 const loadHomeworks = async () => {
@@ -219,18 +267,15 @@ const loadHomeworks = async () => {
     },
   })
     .then((data) => {
-      homeworks.value = (data as HomeworkItem[]).map((homework) => ({
-        ...homework,
-        homework_due_date: new Date(homework.homework_due_date),
+      homeworks.value = (data as HomeworkItem[]).map((hw) => ({
+        ...hw,
+        homework_due_date: new Date(hw.homework_due_date),
       }));
       if (router.currentRoute.value.query.view) {
         const homework = homeworks.value.find(
-          (hw) =>
-            hw.homework_id === Number(router.currentRoute.value.query.view)
+          (h) => h.homework_id === Number(router.currentRoute.value.query.view)
         );
-        if (homework) {
-          selectedHomework.value = homework;
-        }
+        if (homework) selectedHomework.value = homework;
         router.push({ query: {} });
       }
       componentLoading.value = false;
@@ -270,8 +315,10 @@ const changeHomeworkStatus = async (homework: HomeworkItem) => {
 };
 
 const addSelfHomework = async () => {
-  if (!newHomeworkTitle.value || !newHomeworkDetails.value)
-    return (errorSnackbar.value = "Title, details, and date are required");
+  if (!newHomework.value.title || !newHomework.value.details) {
+    errorSnackbar.value = "Title, details, and date are required";
+    return;
+  }
   const session = useCookie<SessionContent>("session");
   if (!session.value?.session_token) logout();
   await $fetch(`${config.public.api_base_url}/homework/manage`, {
@@ -280,11 +327,10 @@ const addSelfHomework = async () => {
       Authorization: session.value.session_token,
       "Content-Type": "application/json",
     },
-
     body: JSON.stringify({
-      title: newHomeworkTitle.value,
-      details: newHomeworkDetails.value,
-      due_date: newHomeworkDueDate.value.toLocaleDateString("fr-FR"),
+      title: newHomework.value.title,
+      details: newHomework.value.details,
+      due_date: newHomework.value.dueDate.toLocaleDateString("fr-FR"),
       assigned_class: 0,
     }),
   })
@@ -295,6 +341,43 @@ const addSelfHomework = async () => {
     .catch((err) => {
       console.error(err.data);
       errorSnackbar.value = "Error when adding homework";
+    });
+};
+
+const editHomeworkFunc = (homework: HomeworkItem) => {
+  editHomework.value.title = homework.homework_title;
+  editHomework.value.details = homework.homework_details;
+  editHomework.value.dueDate = homework.homework_due_date;
+  editHomeworkDialog.value = true;
+};
+
+const saveEditedHomework = async () => {
+  if (!editHomework.value.title || !editHomework.value.details) {
+    errorSnackbar.value = "All fields are required";
+    return;
+  }
+  const session = useCookie<SessionContent>("session");
+  if (!session.value?.session_token) logout();
+  await $fetch(`${config.public.api_base_url}/homework/manage`, {
+    method: "PATCH",
+    headers: {
+      Authorization: session.value.session_token,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      homework_id: selectedHomework.value?.homework_id,
+      title: editHomework.value.title,
+      details: editHomework.value.details,
+      due_date: editHomework.value.dueDate.toLocaleDateString("fr-FR"),
+    }),
+  })
+    .then(() => {
+      loadHomeworks();
+      editHomeworkDialog.value = false;
+    })
+    .catch((err) => {
+      console.error(err);
+      errorSnackbar.value = "Error when editing homework";
     });
 };
 

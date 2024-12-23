@@ -92,6 +92,8 @@
 </template>
 
 <script setup lang="ts">
+import devMode from "~/utils/devMode";
+
 const router = useRouter();
 
 const forgotPassword = ref(false);
@@ -103,8 +105,6 @@ const email = ref("");
 const password = ref("");
 const passwordVisible = ref(false);
 const longerSession = ref(false);
-
-const devMode = computed(() => import.meta.env.DEV);
 
 const login = async () => {
   const config = useRuntimeConfig();

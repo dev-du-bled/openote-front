@@ -10,5 +10,5 @@
 </template>
 
 <script setup>
-const devMode = computed(() => import.meta.env.DEV);
+import devMode from "~/utils/devMode";
 </script>

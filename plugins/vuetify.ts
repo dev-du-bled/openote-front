@@ -11,6 +11,10 @@ export default defineNuxtPlugin((app) => {
       VCalendar,
       VDateInput,
     },
+    locale: {
+      locale: "fr",
+      fallback: "en",
+    },
     theme: {
       // defaultTheme: "dark",
     },

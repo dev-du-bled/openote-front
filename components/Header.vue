@@ -1,35 +1,58 @@
 <template>
   <ClientOnly>
     <v-app-bar scroll-behavior="elevate" class="px-4">
+      <template v-slot:prepend v-if="smAndDown && userStatus != 'none'">
+        <v-app-bar-nav-icon @click="drawer = !drawer" />
+      </template>
       <v-img
-        v-if="!mobile || userStatus == 'none'"
         src="/openote.svg"
         max-width="32px"
         class="ml-4 mb-1"
         draggable="false"
       />
-      <template v-slot:prepend v-if="mobile && userStatus != 'none'">
-        <v-app-bar-nav-icon @click="drawer = !drawer" />
-      </template>
-      <v-app-bar-title class="font-weight-bold move-left"
+      <v-app-bar-title
+        class="font-weight-bold move-left"
+        v-if="!smAndDown || userStatus == 'none'"
         >OpeNote</v-app-bar-title
       >
-      <template v-if="!mobile && userStatus != 'none'">
+      <template v-if="!smAndDown && userStatus != 'none'">
         <template v-for="item in headerItems">
+          <v-tooltip v-if="mdAndDown" :text="item.title" location="bottom">
+            <template v-slot:activator="{ props }">
+              <v-btn
+                :key="item.title"
+                v-if="item.to && (!item.role || item.role.includes(userStatus))"
+                :to="item.to"
+                class="mx-1"
+                v-bind="props"
+              >
+                <v-icon>{{ item.icon }}</v-icon>
+              </v-btn>
+            </template>
+          </v-tooltip>
           <v-btn
+            v-else
             :key="item.title"
             v-if="item.to && (!item.role || item.role.includes(userStatus))"
             :to="item.to"
             class="mx-1"
-            >{{ item.title }}</v-btn
+            :prepend-icon="item.icon"
           >
+            <p>{{ item.title }}</p>
+          </v-btn>
           <v-menu
             :key="item.title"
             v-if="item.items && (!item.role || item.role.includes(userStatus))"
           >
             <template v-slot:activator="{ props }">
-              <v-btn text="true" v-bind="props" class="mx-1"
-                >{{ item.title }} <v-icon>mdi-menu-down</v-icon></v-btn
+              <v-btn
+                text="true"
+                v-bind="props"
+                class="mx-1"
+                :prepend-icon="item.icon"
+                append-icon="mdi-menu-down"
+              >
+                <p v-if="!mdAndDown">{{ item.title }}</p></v-btn
               >
             </template>
             <v-list>
@@ -45,6 +68,9 @@
         </template>
       </template>
       <v-spacer />
+      <p v-if="userStatus && devMode" class="mr-4">
+        {{ userStatus.charAt(0).toUpperCase() + userStatus.slice(1) }}
+      </p>
       <v-btn icon to="/account" v-if="userStatus != 'none'">
         <v-avatar v-if="userProfilePicture" size="x-small">
           <v-img :src="userProfilePicture" alt="Profile Picture">
@@ -74,7 +100,7 @@
       </v-btn>
     </v-app-bar>
     <v-navigation-drawer
-      v-if="mobile && userStatus != 'none'"
+      v-if="smAndDown && userStatus != 'none'"
       v-model="drawer"
       app
     >
@@ -130,6 +156,7 @@
 </style>
 
 <script setup lang="ts">
+import devMode from "@/utils/devMode";
 import { useTheme } from "vuetify";
 
 const drawer = ref(false);
@@ -139,7 +166,7 @@ import { useDisplay } from "vuetify/lib/framework.mjs";
 import { userProfilePicture } from "@/composables/useUserProfile";
 
 const theme = useTheme();
-const { mobile } = useDisplay();
+const { smAndDown, mdAndDown } = useDisplay();
 
 type headerItem = {
   title: string;
@@ -151,7 +178,12 @@ type headerItem = {
 
 const headerItems: headerItem[] = [
   { title: "Home", to: "/", icon: "mdi-home" },
-  { title: "Calendar", to: "/calendar", icon: "mdi-calendar" },
+  {
+    title: "Calendar",
+    to: "/calendar",
+    icon: "mdi-calendar",
+    role: ["teacher", "parent", "student"],
+  },
   {
     title: "Homeworks",
     to: "/student/homeworks",
@@ -169,6 +201,24 @@ const headerItems: headerItem[] = [
     to: "/student/attendance",
     icon: "mdi-check",
     role: ["student"],
+  },
+  {
+    title: "Attendance",
+    to: "/teacher/attendance",
+    icon: "mdi-clock",
+    role: ["teacher"],
+  },
+  {
+    title: "Homeworks",
+    to: "/teacher/homeworks",
+    icon: "mdi-book",
+    role: ["teacher"],
+  },
+  {
+    title: "Exams",
+    to: "/teacher/exams",
+    icon: "mdi-file-document",
+    role: ["teacher"],
   },
   // {
   //   title: "Nav2",

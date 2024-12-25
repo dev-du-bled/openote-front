@@ -32,12 +32,12 @@
         <v-col :cols="mobile ? 12 : 7">
           <v-row>
             <v-col>
-              <dashboard-teacher-homework />
+              <dashboard-teacher-unrecorded-attendance />
             </v-col>
           </v-row>
           <v-row>
             <v-col>
-              <dashboard-teacher-marks />
+              <dashboard-teacher-schedules-exams />
             </v-col>
           </v-row>
         </v-col>

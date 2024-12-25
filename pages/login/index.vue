@@ -7,6 +7,9 @@
       <v-alert v-if="errorMsg" closable type="error" class="mb-2">{{
         errorMsg
       }}</v-alert>
+      <v-alert v-if="sucessMsg" closable type="success" class="mb-2">{{
+        sucessMsg
+      }}</v-alert>
       <v-card
         title="Login"
         subtitle="Login to your OpeNote account"
@@ -101,6 +104,7 @@ const forgotPasswordEmail = ref("");
 const forgotPasswordDialog = ref(false);
 const loading = ref(false);
 const errorMsg = ref("");
+const sucessMsg = ref("");
 const email = ref("");
 const password = ref("");
 const passwordVisible = ref(false);
@@ -149,7 +153,7 @@ const login = async () => {
 onMounted(() => {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.has("logout")) {
-    errorMsg.value = "You have been logged out";
+    sucessMsg.value = "You have been logged out";
   } else if (urlParams.has("expired")) {
     errorMsg.value = "Your session has expired";
   }

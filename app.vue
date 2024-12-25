@@ -1,12 +1,5 @@
 <template>
-  <NuxtLoadingIndicator
-    color="blue"
-    :estimated-progress="
-      () => {
-        return 50;
-      }
-    "
-  />
+  <NuxtLoadingIndicator color="blue" />
   <NuxtLayout>
     <v-app>
       <Header />

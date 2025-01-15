@@ -6,3 +6,4 @@ export type User = {
   pronouns: string;
   role: string;
 };
+export type UserStatus = "student" | "parent" | "teacher" | "admin" | "none";

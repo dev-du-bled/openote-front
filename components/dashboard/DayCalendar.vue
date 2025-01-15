@@ -17,8 +17,7 @@
 
 <script lang="ts" setup>
 import { useDate } from "vuetify";
-
-const events = ref<Array<any>>([]);
+const events = useState<Array<any>>("calendarComponent", () => []);
 const colors = [
   "blue",
   "indigo",

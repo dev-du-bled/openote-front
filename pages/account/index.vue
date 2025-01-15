@@ -110,17 +110,20 @@
 import { logout } from "~/utils/logout";
 import type { User } from "~/utils/types/user";
 
-const user = ref<User>();
-const password = ref({
+const user = useState<User>("user");
+const password = useState("password", () => ({
   current: "",
   new: "",
   confirm: "",
-});
-const email = ref("");
-const loading = ref(true);
-const errorMsg = ref("");
-const changeMailDialog = ref(false);
-const changePasswordDialog = ref(false);
+}));
+const email = useState<string>("email", () => "");
+const loading = useState<boolean>("loading", () => true);
+const errorMsg = useState<string>("errorMsg", () => "");
+const changeMailDialog = useState<boolean>("changeMailDialog", () => false);
+const changePasswordDialog = useState<boolean>(
+  "changePasswordDialog",
+  () => false
+);
 const config = useRuntimeConfig();
 const saveChangesActive = computed(
   () =>

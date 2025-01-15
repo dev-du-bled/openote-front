@@ -188,27 +188,27 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="editHomeworkDialog" max-width="750px">
+    <v-dialog v-model="editHomeworkDialog.displayed" max-width="750px">
       <v-card title="Edit Homework">
         <v-card-text>
           <v-text-field
-            v-model="editHomework.title"
+            v-model="editHomeworkDialog.title"
             label="Title"
             required
           ></v-text-field>
           <v-textarea
-            v-model="editHomework.details"
+            v-model="editHomeworkDialog.details"
             label="Details"
             required
           ></v-textarea>
           <v-date-input
-            v-model="editHomework.dueDate"
+            v-model="editHomeworkDialog.dueDate"
             label="Date"
             required
           ></v-date-input>
         </v-card-text>
         <v-card-actions class="bg-surface-light">
-          <v-btn variant="text" @click="editHomeworkDialog = false"
+          <v-btn variant="text" @click="editHomeworkDialog.displayed = false"
             >Cancel</v-btn
           >
           <v-btn color="primary" @click="saveEditedHomework">Save</v-btn>
@@ -230,10 +230,13 @@ import devMode from "~/utils/devMode";
 
 const router = useRouter();
 
-const componentLoading = ref(true);
-const selectedHomework = ref<HomeworkItem | null>(null);
-const homeworks = ref<HomeworkItem[]>([]);
-const errorSnackbar = ref<string>("");
+const componentLoading = useState("componentLoading", () => true);
+const selectedHomework = useState<HomeworkItem | null>(
+  "selectedHomework",
+  () => null
+);
+const homeworks = useState<HomeworkItem[]>("homeworks", () => []);
+const errorSnackbar = useState<string>("errorSnackbar", () => "");
 const isErrorSnackbarVisible = computed({
   get: () => errorSnackbar.value.length > 0,
   set: (value) => {
@@ -241,19 +244,26 @@ const isErrorSnackbarVisible = computed({
   },
 });
 
-const addSelfHomeworkDialog = ref(false);
-const newHomework = ref({
+const addSelfHomeworkDialog = useState<boolean>(
+  "addSelfHomeworkDialog",
+  () => false
+);
+const newHomework = useState<{
+  title: string;
+  details: string;
+  dueDate: Date;
+}>("newHomework", () => ({
   title: "",
   details: "",
   dueDate: new Date(Date.now() + 86400000),
-});
+}));
 
-const editHomeworkDialog = ref(false);
-const editHomework = ref({
+const editHomeworkDialog = useState("editHomeworkDialog", () => ({
+  displayed: false,
   title: "",
   details: "",
   dueDate: new Date(),
-});
+}));
 
 const config = useRuntimeConfig();
 
@@ -330,7 +340,7 @@ const addSelfHomework = async () => {
     body: JSON.stringify({
       title: newHomework.value.title,
       details: newHomework.value.details,
-      due_date: newHomework.value.dueDate.toLocaleDateString("fr-FR"),
+      due_date: newHomework.value.dueDate.toISOString(),
       assigned_class: 0,
     }),
   })
@@ -345,14 +355,14 @@ const addSelfHomework = async () => {
 };
 
 const editHomeworkFunc = (homework: HomeworkItem) => {
-  editHomework.value.title = homework.homework_title;
-  editHomework.value.details = homework.homework_details;
-  editHomework.value.dueDate = homework.homework_due_date;
-  editHomeworkDialog.value = true;
+  editHomeworkDialog.value.title = homework.homework_title;
+  editHomeworkDialog.value.details = homework.homework_details;
+  editHomeworkDialog.value.dueDate = homework.homework_due_date;
+  editHomeworkDialog.value.displayed = true;
 };
 
 const saveEditedHomework = async () => {
-  if (!editHomework.value.title || !editHomework.value.details) {
+  if (!editHomeworkDialog.value.title || !editHomeworkDialog.value.details) {
     errorSnackbar.value = "All fields are required";
     return;
   }
@@ -366,14 +376,14 @@ const saveEditedHomework = async () => {
     },
     body: JSON.stringify({
       homework_id: selectedHomework.value?.homework_id,
-      title: editHomework.value.title,
-      details: editHomework.value.details,
-      due_date: editHomework.value.dueDate.toLocaleDateString("fr-FR"),
+      title: editHomeworkDialog.value.title,
+      details: editHomeworkDialog.value.details,
+      due_date: editHomeworkDialog.value.dueDate.toLocaleDateString("fr-FR"),
     }),
   })
     .then(() => {
       loadHomeworks();
-      editHomeworkDialog.value = false;
+      editHomeworkDialog.value.displayed = false;
     })
     .catch((err) => {
       console.error(err);

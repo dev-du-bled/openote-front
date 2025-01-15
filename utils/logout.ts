@@ -1,4 +1,4 @@
-import { setUserStatus, type UserStatus } from "~/composables/useCurrentUser";
+import type { UserStatus } from "./types/user";
 
 type SessionContent = {
   session_token: string;
@@ -10,7 +10,8 @@ type SessionContent = {
 const getSession = () => useCookie<SessionContent | null>("session");
 
 const backToLogin = (expired: boolean = false) => {
-  setUserStatus("none");
+  const userStatus = useUserStatus();
+  userStatus.value = "none";
   const session = getSession();
   if (session.value) {
     session.value = null;

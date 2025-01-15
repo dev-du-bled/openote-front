@@ -48,7 +48,8 @@
 
 <script setup lang="ts">
 import { useDisplay } from "vuetify";
-import { userStatus } from "@/composables/useCurrentUser";
+
+const userStatus = useUserStatus();
 
 const { mobile } = useDisplay();
 

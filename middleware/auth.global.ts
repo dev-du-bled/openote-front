@@ -1,9 +1,9 @@
-import { setUserStatus } from "~/composables/useCurrentUser";
 import { logout } from "~/utils/logout";
 import type { SessionContent } from "~/utils/logout";
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
-  if (import.meta.server) return;
+  const userStatus = useUserStatus();
+  const profilePicture = useUserProfilePicture();
 
   const publicRoutes = ["/login", "/register"];
   const config = useRuntimeConfig();
@@ -35,20 +35,23 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
     // Fetch user profile to validate token and get profile picture
     // This call is made here because it's avoid to have another one in the header component
-    await $fetch<{ profile_picture: string }>(`${config.public.api_base_url}/user`, {
-      headers: {
-        Authorization: session.value.session_token,
-      },
-    })
+    await $fetch<{ profile_picture: string }>(
+      `${config.public.api_base_url}/user`,
+      {
+        headers: {
+          Authorization: session.value.session_token,
+        },
+      }
+    )
       .then((data) => {
-        setProfilePicture(data.profile_picture);
+        profilePicture.value = data.profile_picture;
       })
       .catch((err) => {
         console.error("Error fetching user profile", err);
         return logout();
       });
 
-    setUserStatus(session.value.role);
+    userStatus.value = session.value.role;
   } catch (e) {
     console.error("Error while parsing session", e);
     return logout();

@@ -188,12 +188,15 @@
 import devMode from "@/utils/devMode";
 import { useTheme } from "vuetify";
 
-const drawer = ref(false);
-import { userStatus, type UserStatus } from "~/composables/useCurrentUser";
 import { logout } from "@/utils/logout";
 import { useDisplay } from "vuetify/lib/framework.mjs";
-import { userProfilePicture } from "@/composables/useUserProfile";
 
+import { type UserStatus } from "@/utils/types/user";
+
+const userStatus = useUserStatus();
+const userProfilePicture = useUserProfilePicture();
+
+const drawer = ref(false);
 const theme = useTheme();
 const { smAndDown, mdAndDown } = useDisplay();
 

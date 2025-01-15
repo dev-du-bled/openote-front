@@ -49,9 +49,9 @@
 <script setup lang="ts">
 import type { HomeworkItem } from "~/utils/types/homework";
 
-const componentLoading = ref(true);
-const homeworks = ref<HomeworkItem[]>([]);
-const errorSnackbar = ref(false);
+const componentLoading = useState('componentLoading', () => true);
+const homeworks = useState<HomeworkItem[]>('homeworks', () => []);
+const errorSnackbar = useState('errorSnackbar', () => false);
 const config = useRuntimeConfig();
 
 const loadHomeworks = async () => {

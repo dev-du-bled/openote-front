@@ -13,7 +13,7 @@
             draggable="false"
             :alt="`${user?.firstname} ${user?.lastname} profile picture`"
             :src="user?.profile_picture"
-          ></v-img>
+          />
         </v-avatar>
       </template>
 
@@ -23,7 +23,13 @@
           Role: {{ user.role }}<br />
           Pronouns: {{ user.pronouns }}
         </p>
-        <v-text-field v-model="email" label="Email" type="email"></v-text-field>
+        <!-- Email validation -->
+        <v-text-field
+          v-model="emailDialog.email"
+          label="Email"
+          type="email"
+          :rules="[rules.required, rules.email]"
+        />
       </v-card-text>
       <v-card-text v-else-if="!loading">
         <p>Loading seems to have failed</p>
@@ -40,64 +46,79 @@
           :disabled="!saveChangesActive"
           variant="text"
           color="primary"
-          @click="changeMailDialog = true"
+          @click="changeMailConfirm"
           >Save</v-btn
         >
       </v-card-actions>
     </v-card>
+
+    <!-- Change password dialog -->
     <v-dialog v-model="changePasswordDialog" max-width="700px">
       <v-card
         prepend-icon="mdi-key"
         title="Change password"
         subtitle="Change your account password"
+        :loading="emailDialog.loading"
+        :disabled="emailDialog.loading"
       >
         <v-card-text>
           <v-text-field
-            v-model="password.current"
+            v-model="passwordDialog.current"
             label="Current password"
             type="password"
-          ></v-text-field>
+            :rules="[rules.required]"
+          />
           <v-text-field
-            v-model="password.new"
+            v-model="passwordDialog.new"
             label="New password"
             type="password"
-          ></v-text-field>
+            :rules="[rules.required]"
+          />
           <v-text-field
-            v-model="password.confirm"
+            v-model="passwordDialog.confirm"
             label="Confirm new password"
             type="password"
-          ></v-text-field>
+            :rules="[rules.required, rules.passwordMatch]"
+          />
         </v-card-text>
         <v-card-actions class="bg-surface-light">
           <v-spacer />
           <v-btn @click="changePasswordDialog = false" variant="text"
             >Cancel</v-btn
           >
-          <v-btn color="primary">Save</v-btn>
+          <v-btn color="primary" @click="changePassword">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Change email dialog -->
     <v-dialog v-model="changeMailDialog" max-width="700px">
       <v-card
         prepend-icon="mdi-lock"
         title="Confirm action"
         subtitle="Enter your current password"
+        :loading="emailDialog.loading"
+        :disabled="emailDialog.loading"
       >
         <v-card-text>
           <p>
             Once confirmed, your email address will be changed to
-            <b>{{ email }}</b>
+            <b>{{ emailDialog.email }}</b>
           </p>
           <v-text-field
-            v-model="password.current"
+            v-model="emailDialog.password"
             label="Current password"
             type="password"
-          ></v-text-field>
+            :rules="[rules.required]"
+          />
         </v-card-text>
         <v-card-actions class="bg-surface-light">
           <v-spacer />
           <v-btn @click="changeMailDialog = false" variant="text">Cancel</v-btn>
-          <v-btn color="primary" :disabled="password.current.length == 0"
+          <v-btn
+            color="primary"
+            :disabled="emailDialog.password.length == 0"
+            @click="changeMail"
             >Save</v-btn
           >
         </v-card-actions>
@@ -111,12 +132,17 @@ import { logout } from "~/utils/logout";
 import type { User } from "~/utils/types/user";
 
 const user = useState<User>("user");
-const password = useState("password", () => ({
+const passwordDialog = useState("password", () => ({
+  loading: false,
   current: "",
   new: "",
   confirm: "",
 }));
-const email = useState<string>("email", () => "");
+const emailDialog = useState("email", () => ({
+  loading: false,
+  email: "",
+  password: "",
+}));
 const loading = useState<boolean>("loading", () => true);
 const errorMsg = useState<string>("errorMsg", () => "");
 const changeMailDialog = useState<boolean>("changeMailDialog", () => false);
@@ -125,27 +151,34 @@ const changePasswordDialog = useState<boolean>(
   () => false
 );
 const config = useRuntimeConfig();
+
+// Vuetify rules
+const rules = {
+  required: (v: string) => !!v || "This field is required",
+  email: (v: string) => /.+@.+\..+/.test(v) || "E-mail must be valid",
+  passwordMatch: (v: string) =>
+    v === passwordDialog.value.new || "Passwords must match",
+};
+
 const saveChangesActive = computed(
   () =>
-    user.value && user.value.email !== "" && user.value.email !== email.value
+    user.value &&
+    user.value.email !== "" &&
+    user.value.email !== emailDialog.value.email
 );
 
 const loadUser = async () => {
   const session = useCookie<SessionContent>("session");
   const token = session.value ? session.value.session_token : null;
-
   if (!token) return logout();
 
   await $fetch(`${config.public.api_base_url}/user`, {
     method: "GET",
-    headers: {
-      Authorization: token,
-    },
+    headers: { Authorization: token },
   })
     .then((res: any) => {
-      console.log(res);
       user.value = res;
-      email.value = res.email;
+      emailDialog.value.email = res.email;
       loading.value = false;
     })
     .catch((err) => {
@@ -154,24 +187,62 @@ const loadUser = async () => {
     });
 };
 
-const saveAccountChanges = async () => {
+const changeMailConfirm = () => {
+  if (emailDialog.value.email === user.value.email) {
+    errorMsg.value = "The email address is the same as the current one";
+    return;
+  }
+  changeMailDialog.value = true;
+};
+
+const changeMail = () => {
   const session = useCookie<SessionContent>("session");
   const token = session.value ? session.value.session_token : null;
   if (!token) return logout();
+  emailDialog.value.loading = true;
 
-  await $fetch(`${config.public.api_base_url}/user`, {
-    method: "PUT",
-    headers: {
-      Authorization: token,
-    },
-    body: JSON.stringify(user.value),
+  $fetch(`${config.public.api_base_url}/user/email`, {
+    method: "PATCH",
+    headers: { Authorization: token },
+    body: JSON.stringify({
+      new_email: emailDialog.value.email,
+      current_password: emailDialog.value.password,
+    }),
   })
-    .then((res: any) => {
-      console.log(res);
-      user.value = res;
+    .then(() => {
+      user.value.email = emailDialog.value.email;
+      changeMailDialog.value = false;
     })
     .catch((err) => {
       errorMsg.value = err.data.detail ? err.data.detail : "An error occurred";
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+
+const changePassword = () => {
+  const session = useCookie<SessionContent>("session");
+  const token = session.value ? session.value.session_token : null;
+  if (!token) return logout();
+  passwordDialog.value.loading = true;
+
+  $fetch(`${config.public.api_base_url}/user/password`, {
+    method: "PATCH",
+    headers: { Authorization: token },
+    body: JSON.stringify({
+      old_password: passwordDialog.value.current,
+      new_password: passwordDialog.value.new,
+    }),
+  })
+    .then(() => {
+      changePasswordDialog.value = false;
+    })
+    .catch((err) => {
+      errorMsg.value = err.data.detail ? err.data.detail : "An error occurred";
+    })
+    .finally(() => {
+      loading.value = false;
     });
 };
 
@@ -179,7 +250,5 @@ onMounted(() => {
   loadUser();
 });
 
-useHead({
-  title: "Account",
-});
+useHead({ title: "Account" });
 </script>

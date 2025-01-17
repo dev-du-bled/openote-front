@@ -154,7 +154,12 @@
                 @click="editHomeworkFunc(selectedHomework)"
                 >Edit</v-btn
               >
-              <v-btn color="error" prepend-icon="mdi-delete">Delete</v-btn>
+              <v-btn
+                color="error"
+                prepend-icon="mdi-delete"
+                @click="deleteHoweworkFunc(selectedHomework)"
+                >Delete</v-btn
+              >
             </div>
           </v-col>
         </v-row>
@@ -215,6 +220,24 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <!-- Confirmation dialog for deleting homework -->
+    <v-dialog v-model="deleteHoweworkDialog" max-width="500px">
+      <v-card
+        title="Delete homework"
+        subtitle="Are you sure you want to delete this homework?"
+      >
+        <v-card-actions class="bg-surface-light">
+          <v-btn variant="text" @click="deleteHoweworkDialog = false"
+            >Cancel</v-btn
+          >
+          <v-btn
+            color="error"
+            @click="selectedHomework && deleteHowework(selectedHomework)"
+            >Delete</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-snackbar
       color="error"
       timer="#730800"
@@ -264,6 +287,12 @@ const editHomeworkDialog = useState("editHomeworkDialog", () => ({
   details: "",
   dueDate: new Date(),
 }));
+
+// Added state for delete confirmation dialog
+const deleteHoweworkDialog = useState<boolean>(
+  "deleteHoweworkDialog",
+  () => false
+);
 
 const config = useRuntimeConfig();
 
@@ -374,11 +403,14 @@ const saveEditedHomework = async () => {
       Authorization: session.value.session_token,
       "Content-Type": "application/json",
     },
+    query: {
+      id: selectedHomework.value?.homework_id,
+    },
     body: JSON.stringify({
-      homework_id: selectedHomework.value?.homework_id,
       title: editHomeworkDialog.value.title,
       details: editHomeworkDialog.value.details,
       due_date: editHomeworkDialog.value.dueDate.toLocaleDateString("fr-FR"),
+      assigned_class: 0,
     }),
   })
     .then(() => {
@@ -388,6 +420,40 @@ const saveEditedHomework = async () => {
     .catch((err) => {
       console.error(err);
       errorSnackbar.value = "Error when editing homework";
+    });
+};
+
+// Show confirmation dialog before deleting
+const deleteHoweworkFunc = (homework: HomeworkItem) => {
+  selectedHomework.value = homework;
+  deleteHoweworkDialog.value = true;
+};
+
+const deleteHowework = async (homework: HomeworkItem) => {
+  const session = useCookie<SessionContent>("session");
+  if (!session.value?.session_token) logout();
+  await $fetch(`${config.public.api_base_url}/homework/manage`, {
+    method: "DELETE",
+    headers: {
+      Authorization: session.value.session_token,
+      "Content-Type": "application/json",
+    },
+    query: {
+      id: homework.homework_id,
+    },
+  })
+    .then(() => {
+      loadHomeworks();
+    })
+    .catch((err) => {
+      console.error(err);
+      errorSnackbar.value = "Error when deleting homework";
+    })
+    .finally(() => {
+      deleteHoweworkDialog.value = false;
+      if (selectedHomework.value?.homework_id === homework.homework_id) {
+        selectedHomework.value = null;
+      }
     });
 };
 

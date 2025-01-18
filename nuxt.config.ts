@@ -4,8 +4,7 @@ import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 export default defineNuxtConfig({
   runtimeConfig: {
     public: {
-      api_base_url:
-        process.env.OPENOTE_API_BASE_URL ?? "http://localhost:8000/api/v1",
+      api_base_url: process.env.API_BASE_URL ?? "http://localhost:8000/api/v1",
     },
   },
   app: {

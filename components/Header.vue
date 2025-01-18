@@ -1,7 +1,7 @@
 <template>
   <ClientOnly>
     <v-app-bar scroll-behavior="elevate" class="px-4">
-      <template v-slot:prepend v-if="smAndDown && userStatus != 'none'">
+      <template v-slot:prepend v-if="smAndDown && userRole != 'none'">
         <v-app-bar-nav-icon @click="drawer = !drawer" />
       </template>
       <!-- The logo is hardcoded to be displayed instantiously when loading the page -->
@@ -25,16 +25,16 @@
 
       <v-app-bar-title
         class="font-weight-bold move-left"
-        v-if="!smAndDown || userStatus == 'none'"
+        v-if="!smAndDown || userRole == 'none'"
         >OpeNote</v-app-bar-title
       >
-      <template v-if="!smAndDown && userStatus != 'none'">
+      <template v-if="!smAndDown && userRole != 'none'">
         <template v-for="item in headerItems">
           <v-tooltip v-if="mdAndDown" :text="item.title" location="bottom">
             <template v-slot:activator="{ props }">
               <v-btn
                 :key="item.title"
-                v-if="item.to && (!item.role || item.role.includes(userStatus))"
+                v-if="item.to && (!item.role || item.role.includes(userRole))"
                 :to="item.to"
                 class="mx-1"
                 v-bind="props"
@@ -46,7 +46,7 @@
           <v-btn
             v-else
             :key="item.title"
-            v-if="item.to && (!item.role || item.role.includes(userStatus))"
+            v-if="item.to && (!item.role || item.role.includes(userRole))"
             :to="item.to"
             class="mx-1"
             :prepend-icon="item.icon"
@@ -55,7 +55,7 @@
           </v-btn>
           <v-menu
             :key="item.title"
-            v-if="item.items && (!item.role || item.role.includes(userStatus))"
+            v-if="item.items && (!item.role || item.role.includes(userRole))"
           >
             <template v-slot:activator="{ props }">
               <v-btn
@@ -81,12 +81,12 @@
         </template>
       </template>
       <v-spacer />
-      <p v-if="userStatus && devMode" class="mr-4">
-        {{ userStatus.charAt(0).toUpperCase() + userStatus.slice(1) }}
+      <p v-if="userRole && devMode" class="mr-4">
+        {{ userRole.charAt(0).toUpperCase() + userRole.slice(1) }}
       </p>
-      <v-btn icon to="/account" v-if="userStatus != 'none'">
-        <v-avatar v-if="userProfilePicture" size="x-small">
-          <v-img :src="userProfilePicture" alt="Profile Picture">
+      <v-btn icon to="/account" v-if="userRole != 'none'">
+        <v-avatar v-if="user?.profile_picture" size="x-small">
+          <v-img :src="user?.profile_picture" alt="Profile Picture">
             <template #error>
               <v-icon>mdi-account</v-icon>
             </template>
@@ -108,19 +108,19 @@
             : "mdi-moon-waning-crescent"
         }}</v-icon>
       </v-btn>
-      <v-btn icon @click="logout(false)" v-if="userStatus != 'none'">
+      <v-btn icon @click="logout(false)" v-if="userRole != 'none'">
         <v-icon>mdi-logout</v-icon>
       </v-btn>
     </v-app-bar>
     <v-navigation-drawer
-      v-if="smAndDown && userStatus != 'none'"
+      v-if="smAndDown && userRole != 'none'"
       v-model="drawer"
       app
     >
       <v-list>
         <template v-for="item in headerItems">
           <v-list-item
-            v-if="item.to && (!item.role || item.role.includes(userStatus))"
+            v-if="item.to && (!item.role || item.role.includes(userRole))"
             :key="item.title"
             :to="item.to"
             :prepend-icon="item.icon"
@@ -130,7 +130,7 @@
 
           <v-list-group
             :key="item.title"
-            v-if="item.items && (!item.role || item.role.includes(userStatus))"
+            v-if="item.items && (!item.role || item.role.includes(userRole))"
           >
             <template v-slot:activator="{ props }">
               <v-list-item
@@ -191,10 +191,10 @@ import { useTheme } from "vuetify";
 import { logout } from "@/utils/logout";
 import { useDisplay } from "vuetify/lib/framework.mjs";
 
-import { type UserStatus } from "@/utils/types/user";
+import { type UserRole } from "@/utils/types/user";
 
-const userStatus = useUserStatus();
-const userProfilePicture = useUserProfilePicture();
+const user = useUser();
+const userRole = computed(() => user.value?.role ?? "none");
 
 const drawer = ref(false);
 const theme = useTheme();
@@ -205,7 +205,7 @@ type headerItem = {
   to?: string;
   icon?: string;
   items?: { title: string; to: string }[];
-  role?: UserStatus[]; // The role(s) needed to see the item
+  role?: UserRole[]; // The role(s) needed to see the item
 };
 
 const headerItems: headerItem[] = [

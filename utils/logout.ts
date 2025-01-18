@@ -1,17 +1,14 @@
-import type { UserStatus } from "./types/user";
-
 type SessionContent = {
   session_token: string;
   expires_at: number;
-  role: UserStatus;
 };
 
 // Create a function to get the session cookie
 const getSession = () => useCookie<SessionContent | null>("session");
 
 const backToLogin = (expired: boolean = false) => {
-  const userStatus = useUserStatus();
-  userStatus.value = "none";
+  const user = useUser();
+  user.value = null;
   const session = getSession();
   if (session.value) {
     session.value = null;
@@ -25,7 +22,7 @@ const logout = async (expired: boolean = true) => {
   const config = useRuntimeConfig();
 
   if (token) {
-    await $fetch(`${config.public.api_base_url}/auth/logout`, {
+    await $fetch(`${config.public.apiBaseUrl}/auth/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

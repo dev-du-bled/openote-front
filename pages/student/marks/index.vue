@@ -76,7 +76,7 @@ const groupedMarks = computed(() => {
 const loadMarks = async () => {
   const session = useCookie<SessionContent>("session");
   if (!session.value?.session_token) logout();
-  await $fetch(`${config.public.api_base_url}/marks`, {
+  await $fetch(`${config.public.apiBaseUrl}/marks`, {
     headers: {
       Authorization: session.value.session_token,
     },

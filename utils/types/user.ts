@@ -4,6 +4,6 @@ export type User = {
   lastname: string;
   profile_picture: string;
   pronouns: string;
-  role: string;
+  role: UserRole;
 };
-export type UserStatus = "student" | "parent" | "teacher" | "admin" | "none";
+export type UserRole = "student" | "parent" | "teacher" | "admin" | "none";

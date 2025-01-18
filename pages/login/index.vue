@@ -132,7 +132,7 @@ const login = async () => {
   state.value.loading = true;
   console.log({ email: form.value.email, password: form.value.password });
   try {
-    await $fetch(`${config.public.api_base_url}/auth/login`, {
+    await $fetch(`${config.public.apiBaseUrl}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

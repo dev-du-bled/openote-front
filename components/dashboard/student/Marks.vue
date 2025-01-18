@@ -73,7 +73,7 @@ const config = useRuntimeConfig();
 const loadMarks = async () => {
   const session = useCookie<SessionContent>("session");
   if (!session.value) logout();
-  await $fetch(`${config.public.api_base_url}/marks`, {
+  await $fetch(`${config.public.apiBaseUrlapiBaseUrl}/marks`, {
     headers: {
       Authorization: session.value.session_token,
     },

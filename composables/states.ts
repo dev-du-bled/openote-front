@@ -1,7 +1,6 @@
-import type { User, UserStatus } from "~/utils/types/user";
+import type { User, UserRole } from "~/utils/types/user";
 
-export const useUserStatus = () =>
-  useState<UserStatus>("userStatus", () => "none");
-export const useUserProfilePicture = () =>
-  useState<string | null>("userProfilePicture", () => null);
+/**
+ * @description This is user himself. It is used to store the user data.
+ */
 export const useUser = () => useState<User | null>("user", () => null);

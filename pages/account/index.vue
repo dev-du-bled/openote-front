@@ -172,7 +172,7 @@ const loadUser = async () => {
   const token = session.value ? session.value.session_token : null;
   if (!token) return logout();
 
-  await $fetch(`${config.public.api_base_url}/user`, {
+  await $fetch(`${config.public.apiBaseUrl}/user`, {
     method: "GET",
     headers: { Authorization: token },
   })
@@ -201,7 +201,7 @@ const changeMail = () => {
   if (!token) return logout();
   emailDialog.value.loading = true;
 
-  $fetch(`${config.public.api_base_url}/user/email`, {
+  $fetch(`${config.public.apiBaseUrl}/user/email`, {
     method: "PATCH",
     headers: { Authorization: token },
     body: JSON.stringify({
@@ -227,7 +227,7 @@ const changePassword = () => {
   if (!token) return logout();
   passwordDialog.value.loading = true;
 
-  $fetch(`${config.public.api_base_url}/user/password`, {
+  $fetch(`${config.public.apiBaseUrl}/user/password`, {
     method: "PATCH",
     headers: { Authorization: token },
     body: JSON.stringify({

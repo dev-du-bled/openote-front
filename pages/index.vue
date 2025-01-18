@@ -1,6 +1,7 @@
 <template>
   <ClientOnly>
-    <v-container v-if="userStatus == 'student'">
+    <!-- The student dashboard layout -->
+    <v-container v-if="userRole == 'student'">
       <v-row>
         <v-col :cols="mobile ? 12 : 5">
           <dashboard-day-calendar />
@@ -24,7 +25,8 @@
         </v-col>
       </v-row>
     </v-container>
-    <v-container v-else-if="userStatus == 'teacher'">
+    <!-- The teacher dashboard layout -->
+    <v-container v-else-if="userRole == 'teacher'">
       <v-row>
         <v-col :cols="mobile ? 12 : 5">
           <dashboard-day-calendar />
@@ -49,7 +51,8 @@
 <script setup lang="ts">
 import { useDisplay } from "vuetify";
 
-const userStatus = useUserStatus();
+const user = useUser();
+const userRole = computed(() => user.value?.role);
 
 const { mobile } = useDisplay();
 

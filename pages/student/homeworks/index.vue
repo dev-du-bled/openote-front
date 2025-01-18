@@ -252,6 +252,7 @@ import type { HomeworkItem } from "~/utils/types/homework";
 import devMode from "~/utils/devMode";
 
 const router = useRouter();
+const session = useCookie<SessionContent>("session");
 
 const componentLoading = useState("componentLoading", () => true);
 const selectedHomework = useState<HomeworkItem | null>(
@@ -298,9 +299,8 @@ const config = useRuntimeConfig();
 
 const loadHomeworks = async () => {
   componentLoading.value = true;
-  const session = useCookie<SessionContent>("session");
   if (!session.value?.session_token) logout();
-  await $fetch(`${config.public.api_base_url}/homework/`, {
+  await $fetch(`${config.public.apiBaseUrl}/homework/`, {
     headers: {
       Authorization: session.value.session_token,
     },
@@ -330,9 +330,8 @@ const selectHomework = (homework: HomeworkItem) => {
 };
 
 const changeHomeworkStatus = async (homework: HomeworkItem) => {
-  const session = useCookie<SessionContent>("session");
   if (!session.value?.session_token) logout();
-  await $fetch(`${config.public.api_base_url}/homework/status`, {
+  await $fetch(`${config.public.apiBaseUrl}/homework/status`, {
     method: "PATCH",
     headers: {
       Authorization: session.value.session_token,
@@ -358,9 +357,8 @@ const addSelfHomework = async () => {
     errorSnackbar.value = "Title, details, and date are required";
     return;
   }
-  const session = useCookie<SessionContent>("session");
   if (!session.value?.session_token) logout();
-  await $fetch(`${config.public.api_base_url}/homework/manage`, {
+  await $fetch(`${config.public.apiBaseUrl}/homework/manage`, {
     method: "POST",
     headers: {
       Authorization: session.value.session_token,
@@ -395,9 +393,8 @@ const saveEditedHomework = async () => {
     errorSnackbar.value = "All fields are required";
     return;
   }
-  const session = useCookie<SessionContent>("session");
   if (!session.value?.session_token) logout();
-  await $fetch(`${config.public.api_base_url}/homework/manage`, {
+  await $fetch(`${config.public.apiBaseUrl}/homework/manage`, {
     method: "PATCH",
     headers: {
       Authorization: session.value.session_token,
@@ -430,9 +427,8 @@ const deleteHoweworkFunc = (homework: HomeworkItem) => {
 };
 
 const deleteHowework = async (homework: HomeworkItem) => {
-  const session = useCookie<SessionContent>("session");
   if (!session.value?.session_token) logout();
-  await $fetch(`${config.public.api_base_url}/homework/manage`, {
+  await $fetch(`${config.public.apiBaseUrl}/homework/manage`, {
     method: "DELETE",
     headers: {
       Authorization: session.value.session_token,

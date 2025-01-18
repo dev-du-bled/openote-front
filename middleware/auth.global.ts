@@ -25,14 +25,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       return logout();
     }
 
-    const now = new Date().getTime();
-    const expiresAt = new Date(session.value.expires_at * 1000).getTime();
-
-    if (now > expiresAt) {
-      console.log("Session expired");
-      return logout();
-    }
-
     // Fetch user profile to validate token and get profile picture
     // This call is made here because it's avoid to have another one in the header component
     await $fetch<{ profile_picture: string }>(

@@ -3,7 +3,7 @@ type SessionContent = {
   expires_at: number;
 };
 
-// Create a function to get the session cookie
+// Create a reusable function to get the session cookie
 const getSession = () => useCookie<SessionContent | null>("session");
 
 const backToLogin = (expired: boolean = false) => {

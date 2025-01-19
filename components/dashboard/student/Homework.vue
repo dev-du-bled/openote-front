@@ -40,7 +40,7 @@
             <v-list-item-subtitle
               >Due in
               {{
-                homework.homework_due_date.toLocaleDateString("fr-FR")
+                homework.homework_due_date.toLocaleDateString()
               }}</v-list-item-subtitle
             >
           </v-list-item>

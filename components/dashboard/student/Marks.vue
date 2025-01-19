@@ -35,7 +35,7 @@
             <v-list-item-subtitle
               >Added the
               {{
-                new Date(mark.exam_date).toLocaleDateString("fr-FR")
+                new Date(mark.exam_date).toLocaleDateString()
               }}</v-list-item-subtitle
             >
           </v-list-item>

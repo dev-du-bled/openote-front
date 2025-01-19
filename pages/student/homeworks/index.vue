@@ -4,14 +4,24 @@
       title="Homeworks"
       :disabled="componentLoading"
       :loading="componentLoading"
-    >
-      <template v-slot:append>
+      ><template v-slot:prepend>
+        <v-tooltip text="Return" v-if="mobile && selectedHomework !== null">
+          <template v-slot:activator="{ props }">
+            <v-btn
+              v-bind="props"
+              @click="selectHomework(null)"
+              icon="mdi-arrow-left"
+              variant="text"
+            ></v-btn>
+          </template>
+        </v-tooltip>
+      </template>
+      <template v-slot:append v-if="!mobile || !selectedHomework">
         <!-- TODO: Homework past history -->
         <v-tooltip text="See homework history">
           <template v-slot:activator="{ props }">
             <v-btn
               v-bind="props"
-              @click="addSelfHomeworkDialog = true"
               icon="mdi-clock-outline"
               variant="text"
             ></v-btn>
@@ -21,7 +31,7 @@
           <template v-slot:activator="{ props }">
             <v-btn
               v-bind="props"
-              @click="addSelfHomeworkDialog = true"
+              @click="addSelfHomeworkDialog()"
               icon="mdi-plus"
               variant="text"
             ></v-btn>
@@ -30,7 +40,7 @@
       </template>
       <v-card-text>
         <v-row>
-          <v-col cols="12" md="6">
+          <v-col cols="12" md="5" v-if="!mobile || !selectedHomework">
             <v-list>
               <v-list-subheader>Pending Homeworks</v-list-subheader>
               <div
@@ -63,7 +73,7 @@
                     "
                   >
                     Due in
-                    {{ homework.homework_due_date.toLocaleDateString("fr-FR") }}
+                    {{ homework.homework_due_date.toLocaleDateString() }}
                   </v-list-item-subtitle>
                 </v-list-item>
                 <v-divider
@@ -100,7 +110,7 @@
                   </v-list-item-title>
                   <v-list-item-subtitle>
                     Due in
-                    {{ homework.homework_due_date.toLocaleDateString("fr-FR") }}
+                    {{ homework.homework_due_date.toLocaleDateString() }}
                   </v-list-item-subtitle>
                 </v-list-item>
                 <v-divider
@@ -109,8 +119,11 @@
               </div>
             </v-list>
           </v-col>
-          <v-divider :vertical="true" />
-          <v-col cols="12" md="6" class="d-flex flex-column fill-height">
+          <v-divider v-if="!mobile" :vertical="true" />
+          <v-col
+            class="d-flex flex-column fill-height"
+            v-if="!mobile || selectedHomework"
+          >
             <div v-if="selectedHomework" class="flex-grow-1">
               <h3>{{ selectedHomework.homework_title }}</h3>
               <p v-if="devMode">
@@ -131,9 +144,7 @@
                 "
               >
                 Due Date:
-                {{
-                  selectedHomework.homework_due_date.toLocaleDateString("fr-FR")
-                }}
+                {{ selectedHomework.homework_due_date.toLocaleDateString() }}
               </p>
               <p v-if="selectedHomework.is_author">Is self asigned: Yes</p>
               <p>Details: {{ selectedHomework.homework_details }}</p>
@@ -165,58 +176,45 @@
         </v-row>
       </v-card-text>
     </v-card>
-    <v-dialog v-model="addSelfHomeworkDialog" max-width="750px">
-      <v-card title="Add a self homework">
+    <v-dialog v-model="homeworkDialog.displayed" max-width="750px">
+      <v-card
+        :title="
+          homeworkDialog.editMode ? 'Edit Homework' : 'Add a self homework'
+        "
+      >
         <v-card-text>
           <v-text-field
-            v-model="newHomework.title"
+            v-model="homeworkDialog.title"
             label="Title"
             required
           ></v-text-field>
           <v-textarea
-            v-model="newHomework.details"
+            v-model="homeworkDialog.details"
             label="Details"
             required
           ></v-textarea>
           <v-date-input
-            v-model="newHomework.dueDate"
+            v-model="homeworkDialog.dueDate"
             label="Date"
-            :min="new Date(Date.now() + 86400000).toISOString().split('T')[0]"
+            :min="
+              !homeworkDialog.editMode &&
+              new Date(Date.now() + 86400000).toISOString().split('T')[0]
+            "
             required
           ></v-date-input>
         </v-card-text>
         <v-card-actions class="bg-surface-light">
-          <v-btn variant="text" @click="addSelfHomeworkDialog = false"
-            >Cancel</v-btn
+          <v-btn variant="text" @click="homeworkDialog.displayed = false">
+            Cancel
+          </v-btn>
+          <v-btn
+            v-if="homeworkDialog.editMode"
+            color="primary"
+            @click="saveEditedHomework"
           >
-          <v-btn color="primary" @click="addSelfHomework">Add</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <v-dialog v-model="editHomeworkDialog.displayed" max-width="750px">
-      <v-card title="Edit Homework">
-        <v-card-text>
-          <v-text-field
-            v-model="editHomeworkDialog.title"
-            label="Title"
-            required
-          ></v-text-field>
-          <v-textarea
-            v-model="editHomeworkDialog.details"
-            label="Details"
-            required
-          ></v-textarea>
-          <v-date-input
-            v-model="editHomeworkDialog.dueDate"
-            label="Date"
-            required
-          ></v-date-input>
-        </v-card-text>
-        <v-card-actions class="bg-surface-light">
-          <v-btn variant="text" @click="editHomeworkDialog.displayed = false"
-            >Cancel</v-btn
-          >
-          <v-btn color="primary" @click="saveEditedHomework">Save</v-btn>
+            Save
+          </v-btn>
+          <v-btn v-else color="primary" @click="addSelfHomework"> Add </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -248,13 +246,15 @@
 </template>
 
 <script setup lang="ts">
+import { useDisplay } from "vuetify";
 import type { HomeworkItem } from "~/utils/types/homework";
 import devMode from "~/utils/devMode";
 
 const router = useRouter();
 const session = useCookie<SessionContent>("session");
+const { mobile } = useDisplay();
 
-const componentLoading = useState("componentLoading", () => true);
+const componentLoading = useState("homeworksStudentLoading", () => true);
 const selectedHomework = useState<HomeworkItem | null>(
   "selectedHomework",
   () => null
@@ -268,25 +268,18 @@ const isErrorSnackbarVisible = computed({
   },
 });
 
-const addSelfHomeworkDialog = useState<boolean>(
-  "addSelfHomeworkDialog",
-  () => false
-);
-const newHomework = useState<{
+const homeworkDialog = useState<{
+  displayed: boolean;
+  editMode: boolean;
   title: string;
   details: string;
   dueDate: Date;
 }>("newHomework", () => ({
+  displayed: false,
+  editMode: false,
   title: "",
   details: "",
   dueDate: new Date(Date.now() + 86400000),
-}));
-
-const editHomeworkDialog = useState("editHomeworkDialog", () => ({
-  displayed: false,
-  title: "",
-  details: "",
-  dueDate: new Date(),
 }));
 
 // Added state for delete confirmation dialog
@@ -315,7 +308,6 @@ const loadHomeworks = async () => {
           (h) => h.homework_id === Number(router.currentRoute.value.query.view)
         );
         if (homework) selectedHomework.value = homework;
-        router.push({ query: {} });
       }
       componentLoading.value = false;
     })
@@ -325,7 +317,7 @@ const loadHomeworks = async () => {
     });
 };
 
-const selectHomework = (homework: HomeworkItem) => {
+const selectHomework = (homework: HomeworkItem | null) => {
   selectedHomework.value = homework;
 };
 
@@ -353,7 +345,7 @@ const changeHomeworkStatus = async (homework: HomeworkItem) => {
 };
 
 const addSelfHomework = async () => {
-  if (!newHomework.value.title || !newHomework.value.details) {
+  if (!homeworkDialog.value.title || !homeworkDialog.value.details) {
     errorSnackbar.value = "Title, details, and date are required";
     return;
   }
@@ -365,15 +357,15 @@ const addSelfHomework = async () => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      title: newHomework.value.title,
-      details: newHomework.value.details,
-      due_date: newHomework.value.dueDate.toISOString(),
+      title: homeworkDialog.value.title,
+      details: homeworkDialog.value.details,
+      due_date: homeworkDialog.value.dueDate.toLocaleDateString(),
       assigned_class: 0,
     }),
   })
     .then(() => {
       loadHomeworks();
-      addSelfHomeworkDialog.value = false;
+      homeworkDialog.value.displayed = false;
     })
     .catch((err) => {
       console.error(err.data);
@@ -381,15 +373,23 @@ const addSelfHomework = async () => {
     });
 };
 
+const addSelfHomeworkDialog = () => {
+  homeworkDialog.value.displayed = true;
+  homeworkDialog.value.editMode = false;
+  homeworkDialog.value.title = "";
+  homeworkDialog.value.details = "";
+  homeworkDialog.value.dueDate = new Date(Date.now() + 86400000);
+};
 const editHomeworkFunc = (homework: HomeworkItem) => {
-  editHomeworkDialog.value.title = homework.homework_title;
-  editHomeworkDialog.value.details = homework.homework_details;
-  editHomeworkDialog.value.dueDate = homework.homework_due_date;
-  editHomeworkDialog.value.displayed = true;
+  homeworkDialog.value.title = homework.homework_title;
+  homeworkDialog.value.details = homework.homework_details;
+  homeworkDialog.value.dueDate = homework.homework_due_date;
+  homeworkDialog.value.displayed = true;
+  homeworkDialog.value.editMode = true;
 };
 
 const saveEditedHomework = async () => {
-  if (!editHomeworkDialog.value.title || !editHomeworkDialog.value.details) {
+  if (!homeworkDialog.value.title || !homeworkDialog.value.details) {
     errorSnackbar.value = "All fields are required";
     return;
   }
@@ -404,15 +404,15 @@ const saveEditedHomework = async () => {
       id: selectedHomework.value?.homework_id,
     },
     body: JSON.stringify({
-      title: editHomeworkDialog.value.title,
-      details: editHomeworkDialog.value.details,
-      due_date: editHomeworkDialog.value.dueDate.toLocaleDateString("fr-FR"),
+      title: homeworkDialog.value.title,
+      details: homeworkDialog.value.details,
+      due_date: homeworkDialog.value.dueDate.toLocaleDateString(),
       assigned_class: 0,
     }),
   })
     .then(() => {
       loadHomeworks();
-      editHomeworkDialog.value.displayed = false;
+      homeworkDialog.value.displayed = false;
     })
     .catch((err) => {
       console.error(err);
@@ -453,8 +453,9 @@ const deleteHowework = async (homework: HomeworkItem) => {
     });
 };
 
-onMounted(() => {
-  loadHomeworks();
+onMounted(async () => {
+  await loadHomeworks();
+  router.push({ query: {} });
 });
 
 useHead({

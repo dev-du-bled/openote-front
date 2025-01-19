@@ -177,7 +177,7 @@
         </v-card-text>
         <v-card-actions class="bg-surface-light">
           <v-btn @click="deleteHomeWorkDialog.displayed = false">Cancel</v-btn>
-          <v-btn color="error">Delete</v-btn>
+          <v-btn color="error" @click="deleteHomework()">Delete</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -346,7 +346,7 @@ const editHomework = async () => {
     });
 };
 
-const deleteHomeWork = async () => {
+const deleteHomework = async () => {
   await $fetch(`${config.public.apiBaseUrl}/homework/manage`, {
     method: "DELETE",
     headers: {

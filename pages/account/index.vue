@@ -217,6 +217,8 @@ const changeMail = () => {
       errorMsg.value = err.data.detail ? err.data.detail : "An error occurred";
     })
     .finally(() => {
+      emailDialog.value.loading = false;
+      emailDialog.value.password = "";
       loading.value = false;
     });
 };
@@ -243,6 +245,10 @@ const changePassword = () => {
     })
     .finally(() => {
       loading.value = false;
+      passwordDialog.value.loading = false;
+      passwordDialog.value.current = "";
+      passwordDialog.value.new = "";
+      passwordDialog.value.confirm = "";
     });
 };
 

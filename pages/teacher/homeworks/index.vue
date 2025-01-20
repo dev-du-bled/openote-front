@@ -308,7 +308,7 @@ const addHomework = async () => {
       assigned_class: homeworkDialog.value.classId,
       title: homeworkDialog.value.title,
       details: homeworkDialog.value.details,
-      due_date: homeworkDialog.value.dueDate.toLocaleDateString(),
+      due_date: homeworkDialog.value.dueDate.toISOString(),
     }),
   })
     .then(() => {
@@ -334,7 +334,7 @@ const editHomework = async () => {
       assigned_class: homeworkDialog.value.classId,
       title: homeworkDialog.value.title,
       details: homeworkDialog.value.details,
-      due_date: homeworkDialog.value.dueDate.toLocaleDateString(),
+      due_date: homeworkDialog.value.dueDate.toISOString(),
     }),
   })
     .then(() => {

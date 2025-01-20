@@ -406,7 +406,7 @@ const saveEditedHomework = async () => {
     body: JSON.stringify({
       title: homeworkDialog.value.title,
       details: homeworkDialog.value.details,
-      due_date: homeworkDialog.value.dueDate.toLocaleDateString(),
+      due_date: homeworkDialog.value.dueDate.toISOString(),
       assigned_class: 0,
     }),
   })

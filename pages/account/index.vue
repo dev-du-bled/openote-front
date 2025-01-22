@@ -172,7 +172,7 @@ const loadUser = async () => {
   const token = session.value ? session.value.session_token : null;
   if (!token) return logout();
 
-  await $fetch(`${config.public.apiBaseUrl}/user`, {
+  await $fetch(`${config.public.apiBaseUrl}/user/`, {
     method: "GET",
     headers: { Authorization: token },
   })

@@ -129,27 +129,24 @@
 
 <script setup lang="ts">
 import { logout } from "~/utils/logout";
-import type { User } from "~/utils/types/user";
+import type { User } from "~/utils/definitions/user";
 
-const user = useState<User>("user");
-const passwordDialog = useState("password", () => ({
+const user = ref<User | null>(null);
+const passwordDialog = ref({
   loading: false,
   current: "",
   new: "",
   confirm: "",
-}));
-const emailDialog = useState("email", () => ({
+});
+const emailDialog = ref({
   loading: false,
   email: "",
   password: "",
-}));
-const loading = useState<boolean>("loading", () => true);
-const errorMsg = useState<string>("errorMsg", () => "");
-const changeMailDialog = useState<boolean>("changeMailDialog", () => false);
-const changePasswordDialog = useState<boolean>(
-  "changePasswordDialog",
-  () => false
-);
+});
+const loading = ref<boolean>(true);
+const errorMsg = ref<string>("");
+const changeMailDialog = ref<boolean>(false);
+const changePasswordDialog = ref<boolean>(false);
 const config = useRuntimeConfig();
 
 // Vuetify rules
@@ -188,7 +185,7 @@ const loadUser = async () => {
 };
 
 const changeMailConfirm = () => {
-  if (emailDialog.value.email === user.value.email) {
+  if (emailDialog.value.email === user.value?.email) {
     errorMsg.value = "The email address is the same as the current one";
     return;
   }
@@ -210,7 +207,9 @@ const changeMail = () => {
     }),
   })
     .then(() => {
-      user.value.email = emailDialog.value.email;
+      if (user.value) {
+        user.value.email = emailDialog.value.email;
+      }
       changeMailDialog.value = false;
     })
     .catch((err) => {

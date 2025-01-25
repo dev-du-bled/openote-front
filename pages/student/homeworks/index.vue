@@ -247,7 +247,7 @@
 
 <script setup lang="ts">
 import { useDisplay } from "vuetify";
-import type { HomeworkItem } from "~/utils/types/homework";
+import type { HomeworkItem } from "~/utils/definitions/homework";
 import devMode from "~/utils/devMode";
 
 const router = useRouter();

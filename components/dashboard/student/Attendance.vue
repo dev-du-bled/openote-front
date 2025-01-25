@@ -37,10 +37,8 @@
 </template>
 
 <script setup lang="ts">
-import type { HomeworkItem } from "~/utils/types/homework";
-
-const componentLoading = useState('componentLoading', () => true)
-const errorSnackbar = useState('errorSnackbar', () => false)
+const componentLoading = ref(true)
+const errorSnackbar = ref(false)
 
 onMounted(() => {
   setTimeout(() => {

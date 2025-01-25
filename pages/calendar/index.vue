@@ -16,7 +16,7 @@ import { useDate, useDisplay } from "vuetify";
 const { mobile } = useDisplay();
 const weekday = [1, 2, 3, 4, 5];
 
-const events = useState<Array<any>>("calendarEvents", () => []);
+const events = ref<Array<any>>([]);
 const colors = [
   "blue",
   "indigo",
@@ -26,52 +26,81 @@ const colors = [
   "orange",
   "grey darken-1",
 ];
-const names = [
-  "Meeting",
-  "Holiday",
-  "PTO",
-  "Travel",
-  "Event",
-  "Birthday",
-  "Conference",
-  "Party",
+const courses = [
+  "Math class",
+  "English lesson",
+  "Science course",
+  "Programming tutorial",
+  "Art workshop",
+  "Music class",
+  "History lecture",
 ];
 
 const adapter = useDate();
 
-const getEventColor = (event: any) => {
-  return event.color;
-};
-
-const fetchEvents = ({ start, end }: { start: Date; end: Date }) => {
-  const eventList: Array<any> = [];
-
-  const min = start;
-  const max = end;
-  const days = (max.getTime() - min.getTime()) / 86400000;
-  const eventCount = rnd(days, days + 20);
-
-  for (let i = 0; i < eventCount; i++) {
-    const allDay = rnd(0, 3) === 0;
-    const firstTimestamp = rnd(min.getTime(), max.getTime());
-    const first = new Date(firstTimestamp - (firstTimestamp % 900000));
-    const secondTimestamp = rnd(2, allDay ? 288 : 8) * 900000;
-    const second = new Date(first.getTime() + secondTimestamp);
-
-    eventList.push({
-      title: names[rnd(0, names.length - 1)],
-      start: first,
-      end: second,
-      color: colors[rnd(0, colors.length - 1)],
-      allDay: !allDay,
-    });
-  }
-
-  events.value = eventList;
-};
-
 const rnd = (a: number, b: number) => {
   return Math.floor((b - a + 1) * Math.random()) + a;
+};
+
+function generateCourseEvents(startDate: Date, endDate: Date) {
+  const eventList: Array<any> = [];
+  let current = new Date(startDate);
+
+  while (current <= endDate) {
+    const dayOfWeek = current.getDay();
+    // Monday=1, Tuesday=2, Wednesday=3, Thursday=4, Friday=5
+    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+      // morning
+      const morningCount = rnd(2, 4);
+      for (let i = 0; i < morningCount; i++) {
+        const hour = rnd(8, 11);
+        const start = new Date(
+          current.getFullYear(),
+          current.getMonth(),
+          current.getDate(),
+          hour,
+          0
+        );
+        const duration = 60;
+        const end = new Date(start.getTime() + duration * 60000);
+        eventList.push({
+          title: courses[rnd(0, courses.length - 1)],
+          start,
+          end,
+          color: colors[rnd(0, colors.length - 1)],
+          allDay: false,
+        });
+      }
+      // afternoon
+      const afternoonCount = rnd(2, 4);
+      for (let i = 0; i < afternoonCount; i++) {
+        const hour = rnd(13, 17);
+        const minute = 0;
+        const start = new Date(
+          current.getFullYear(),
+          current.getMonth(),
+          current.getDate(),
+          hour,
+          minute
+        );
+        const duration = 60;
+        const end = new Date(start.getTime() + duration * 60000);
+        eventList.push({
+          title: courses[rnd(0, courses.length - 1)],
+          start,
+          end,
+          color: colors[rnd(0, colors.length - 1)],
+          allDay: false,
+        });
+      }
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  return eventList;
+}
+
+const fetchEvents = ({ start, end }: { start: Date; end: Date }) => {
+  events.value = generateCourseEvents(start, end);
 };
 
 onMounted(() => {

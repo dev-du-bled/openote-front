@@ -1,4 +1,4 @@
-import type { User, UserRole } from "~/utils/types/user";
+import type { User } from "~/utils/definitions/user";
 
 /**
  * @description This is user himself. It is used to store the user data.

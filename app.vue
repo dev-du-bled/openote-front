@@ -4,7 +4,7 @@
     <v-app>
       <Header />
       <v-main>
-        <!-- The page is redered on client only -->
+        <!-- The page content is rendered on the client only to have something to show if the server is slow to respond because we're depending on it -->
         <ClientOnly>
           <NuxtPage />
         </ClientOnly>
@@ -16,9 +16,11 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted } from "vue";
+import { useTheme } from "vuetify";
+
+const theme = useTheme();
 
 // Easter egg
-
 const konamiCode = [
   "ArrowUp",
   "ArrowUp",
@@ -48,11 +50,15 @@ const handleKeydown = (event: { code: string }) => {
   }
 };
 
-onMounted(() => {
-  window.addEventListener("keydown", handleKeydown);
-});
+// Dark mode auto
+const handleDarkModeChange = (event: MediaQueryListEvent) => {
+  theme.global.name.value = event.matches ? "dark" : "light";
+};
 
-onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeydown);
+onMounted(() => {
+  const darkModeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  window.addEventListener("keydown", handleKeydown);
+  theme.global.name.value = darkModeMediaQuery.matches ? "dark" : "light";
+  darkModeMediaQuery.addEventListener("change", handleDarkModeChange);
 });
 </script>

@@ -1,6 +1,6 @@
 import { logout } from "~/utils/logout";
 import type { SessionContent } from "~/utils/logout";
-import type { User } from "~/utils/types/user";
+import type { User } from "~/utils/definitions/user";
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
   if (import.meta.server) return;

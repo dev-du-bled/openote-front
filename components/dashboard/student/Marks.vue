@@ -65,10 +65,12 @@
 </template>
 
 <script setup lang="ts">
-import type { MarkItem } from "@/utils/types/mark";
-const componentLoading = useState("marksComponentLoading", () => true);
-const marks = useState<MarkItem[]>("marksComponent", () => []);
+import type { MarkItem } from "@/utils/definitions/mark";
+
 const config = useRuntimeConfig();
+
+const componentLoading = ref(true);
+const marks = ref<MarkItem[]>([]);
 
 const loadMarks = async () => {
   const session = useCookie<SessionContent>("session");

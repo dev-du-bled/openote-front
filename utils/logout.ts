@@ -3,7 +3,6 @@ type SessionContent = {
   expires_at: number;
 };
 
-// Create a reusable function to get the session cookie
 const getSession = () => useCookie<SessionContent | null>("session");
 
 const backToLogin = (expired: boolean = false) => {
@@ -28,7 +27,7 @@ const logout = async (expired: boolean = true) => {
         "Content-Type": "application/json",
         Authorization: `${token}`,
       },
-    }).catch(() => {}); // Ignore errors if token is invalid/expired
+    }).catch(() => {}); // Ignore errors if token is invalid/expired. If this fails, it means the token is probably already dead.
   }
   return backToLogin(expired);
 };

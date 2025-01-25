@@ -45,6 +45,10 @@
         </v-col>
       </v-row>
     </v-container>
+    <!-- Admin -->
+    <v-container v-else-if="userRole == 'admin'">
+      <h1>Welcome, {{ user?.firstname }} !</h1>
+    </v-container>
   </ClientOnly>
 </template>
 

@@ -37,8 +37,8 @@
 </template>
 
 <script setup lang="ts">
-const componentLoading = useState('componentLoading', () => true);
-const errorSnackbar = useState('errorSnackbar', () => false);
+const componentLoading = ref(true);
+const errorSnackbar = ref(false);
 
 onMounted(() => {
   setTimeout(() => {

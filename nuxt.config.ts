@@ -39,4 +39,5 @@ export default defineNuxtConfig({
   typescript: {
     typeCheck: true,
   },
+  ssr: true,
 });

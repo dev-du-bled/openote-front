@@ -192,17 +192,18 @@
 
 <script setup lang="ts">
 import { useDisplay } from "vuetify";
-import type { ClassItem } from "~/utils/types/class";
-import type { HomeworkItem } from "~/utils/types/homework";
+import type { ClassItem } from "~/utils/definitions/class";
+import type { HomeworkItem } from "~/utils/definitions/homework";
 
 const { mobile } = useDisplay();
 
 const session = useCookie<SessionContent>("session");
 const config = useRuntimeConfig();
 
-const componentLoading = useState("homeworksTeacherLoading", () => true);
+const componentLoading = ref(true);
 
-const errorSnackbar = useState<string>("errorSnackbar", () => "");
+const errorSnackbar = ref<string>("");
+
 const isErrorSnackbarVisible = computed({
   get: () => errorSnackbar.value.length > 0,
   set: (value) => {
@@ -210,27 +211,35 @@ const isErrorSnackbarVisible = computed({
   },
 });
 
-const classList = useState<ClassItem[]>("classList", () => []);
-const homeworkList = useState<HomeworkItem[]>("homeworkList", () => []);
+const classList = ref<ClassItem[]>([]);
 
-const homeworkDialog = useState("homeworkDialog", () => ({
+const homeworkList = ref<HomeworkItem[]>([]);
+
+const homeworkDialog = ref<{
+  displayed: boolean;
+  edit: boolean;
+  title: string;
+  details: string;
+  classId: number;
+  dueDate: Date;
+}>({
   displayed: false,
   edit: false,
   title: "",
   details: "",
   classId: 0,
   dueDate: new Date(),
-}));
+});
 
-const deleteHomeWorkDialog = useState("deleteHomeWorkDialog", () => ({
+const deleteHomeWorkDialog = ref<{
+  displayed: boolean;
+  homeworkId: number;
+}>({
   displayed: false,
   homeworkId: 0,
-}));
+});
 
-const selectedHomework = useState<HomeworkItem | null>(
-  "selectedHomework",
-  () => null
-);
+const selectedHomework = ref<HomeworkItem | null>(null);
 
 const fetchClassList = async () => {
   await $fetch(`${config.public.apiBaseUrl}/collection/class`, {

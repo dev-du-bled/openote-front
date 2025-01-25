@@ -44,11 +44,11 @@
 </template>
 
 <script setup lang="ts">
-import type { MarkItem } from "@/utils/types/mark";
+import type { MarkItem } from "@/utils/definitions/mark";
 
 const componentLoading = ref(true);
 
-const marks = useState<MarkItem[]>("marks", () => []);
+const marks = ref<MarkItem[]>([]);
 const config = useRuntimeConfig();
 
 const groupedMarks = computed(() => {

@@ -51,7 +51,7 @@
     <v-card
       v-if="devMode"
       title="Login as (Debug only)"
-      style="margin: 0 auto; max-width: 400px"
+      style="margin: 0 auto; max-width: 500px"
       class="mt-3"
     >
       <v-card-actions>
@@ -79,6 +79,14 @@
           variant="text"
           >Teacher</v-btn
         >
+        <v-btn
+          @click="
+            form.email = 'admin@example.com';
+            form.password = 'password';
+          "
+          variant="text"
+          >Admin</v-btn
+        >
       </v-card-actions>
     </v-card>
     <v-dialog v-model="forgotPasswordState.dialog" max-width="750px">
@@ -105,27 +113,26 @@
 
 <script setup lang="ts">
 import devMode from "~/utils/devMode";
-import { useState } from "#app";
 
 const router = useRouter();
 
-const form = useState("form", () => ({
+const form = ref({
   email: "",
   password: "",
   longerSession: false,
   passwordVisible: false,
-}));
+});
 
-const state = useState("state", () => ({
+const state = ref({
   loading: false,
   errorMsg: "",
   sucessMsg: "",
-}));
+});
 
-const forgotPasswordState = useState("forgotPassword", () => ({
+const forgotPasswordState = ref({
   dialog: false,
   email: "",
-}));
+});
 
 const login = async () => {
   const config = useRuntimeConfig();

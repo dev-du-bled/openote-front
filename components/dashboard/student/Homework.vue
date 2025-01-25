@@ -75,12 +75,13 @@
 </template>
 
 <script setup lang="ts">
-import type { HomeworkItem } from "~/utils/types/homework";
+import type { HomeworkItem } from "~/utils/definitions/homework";
 
-const componentLoading = useState("componentLoading", () => true);
-const homeworks = useState<HomeworkItem[]>("homeworks", () => []);
-const errorSnackbar = useState("errorSnackbar", () => false);
 const config = useRuntimeConfig();
+
+const componentLoading = ref(true);
+const homeworks = ref<HomeworkItem[]>([]);
+const errorSnackbar = ref(false);
 
 const loadHomeworks = async () => {
   componentLoading.value = true;
